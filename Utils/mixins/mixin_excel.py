@@ -1,3 +1,6 @@
+"""
+Управление Excel.
+"""
 import datetime
 import tkinter
 from random import randint
@@ -397,8 +400,10 @@ class ExcelMixin:
         words_total = self._get_counter_rows_from_excel(work_list)
         rand_index = randint(settings.EXCEL_INDEX_FIRST_ROW_WITH_DATA,  # Достаём рандомный индекс строки
                              words_total + settings.EXCEL_INDEX_FIRST_ROW_WITH_DATA - 1)
-                                                                                # Достаём рандомную строку
-        random_row = next(work_list.iter_rows(min_row=rand_index, max_row=rand_index, min_col=settings.EXCEL_DATA_COLUMNS[0],
+
+        random_row = next(work_list.iter_rows(min_row=rand_index,               # Достаём рандомную строку
+                                              max_row=rand_index,
+                                              min_col=settings.EXCEL_DATA_COLUMNS[0],
                                               max_col=settings.EXCEL_DATA_COLUMNS[1]))
         random_row = [cell.value for cell in random_row]                        # Делаем список со значениями
         tls.replace_non_breaking_space(random_row)                              # Форматируем строку для вывода

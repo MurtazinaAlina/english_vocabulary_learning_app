@@ -1,3 +1,9 @@
+"""
+Окно для работы с данными.
+Доступно создание, редактирование, удаление тем/листов Excel.
+Доступно отображение записей: всех записей выбранного листа Excel/темы, либо всех записей в базе - для БД.
+Данные доступны к поиску, созданию, просмотру, редактированию, удалению.
+"""
 import functools
 import tkinter as tk
 from tkinter import ttk, messagebox as mbox
@@ -12,10 +18,10 @@ from Utils.custom_widgets.tooltips import TooltipCursorOnHover, TooltipHiding
 
 
 class DataWindow(ttk.Frame):
-    """ Окно с отображением всех записей выбранного листа/темы, либо всех записей - для БД"""
+    """ Окно для работы с данными."""
 
     def __init__(self, parent):             # При инициализации передаётся app Tk()
-        super().__init__(parent)            # Для доступа к родительским атрибутам
+        super().__init__(parent)
         self.parent = parent                # Имя-связка для обращения к родителю за его атрибутами и методами
         self.bg = styles.STYLE_COLORS[self.parent.current_color_style]['background']
 
@@ -25,7 +31,7 @@ class DataWindow(ttk.Frame):
         self.put_widgets()
 
     def put_widgets(self) -> None:
-        """ Сборка основного окна страницы """
+        """ Сборка основного окна страницы. """
 
         if not self.parent.wb and not self.parent.db.engine:
             mbox.showerror('Ошибка', 'Не выбран файл')                          # Если не подключен ни один вид базы
@@ -36,7 +42,7 @@ class DataWindow(ttk.Frame):
         header_label = ttk.Label(header_container, text=settings.APP_WINDOWS['data']['label'], style='HeadLbl.TLabel')
         header_label.pack(anchor='center')
 
-        self.wrapper_choose_frame = tk.Frame(self)      # Верхний контейнер с выбором листа и иконками управления
+        self.wrapper_choose_frame = tk.Frame(self)          # Верхний контейнер с выбором листа и иконками управления
         self.wrapper_choose_frame.pack(anchor='w')
 
         self.put_container_block_above_table(self.wrapper_choose_frame)         # Сборка верхнего контейнера
@@ -47,8 +53,253 @@ class DataWindow(ttk.Frame):
 
         self.put_bottom_container()                                             # Сборка контейнера с пагинацией
 
+    def put_icon_add_sheet(self) -> None:
+        """ Иконка добавление нового листа/темы. """
+
+        image = Image.open(settings.ICON_ADD_SHEET['path'])
+        image = image.resize((20, 20))
+        icon = ImageTk.PhotoImage(image)
+        self.btn_add_sheet_icon = tk.Button(self.container_manage_sheet_icons, image=icon,
+                                            command=self.parent.popup.add_new_sheet_popup, bd=0)
+        self.btn_add_sheet_icon.image = icon
+        self.btn_add_sheet_icon.config(bg=styles.STYLE_COLORS[self.parent.current_color_style]['background'])
+        text = 'Создать новую тему' if self.parent.db.engine else 'Создать новый лист'
+        TooltipCursorOnHover(self.btn_add_sheet_icon, text=text, hand_cursor=True, x=435, y=220)
+
+    def put_icon_delete_sheet(self) -> None:
+        """ Иконка удаление листа/темы. """
+
+        image = Image.open(settings.ICON_DELETE_SHEET['path'])
+        image = image.resize((20, 20))
+        icon = ImageTk.PhotoImage(image)
+        self.btn_delete_sheet_icon = tk.Button(self.container_manage_sheet_icons, image=icon,
+                                               command=self.parent.popup.on_click_DELETESHEET,
+                                               bd=0)
+        self.btn_delete_sheet_icon.image = icon
+        self.btn_delete_sheet_icon.config(bg=styles.STYLE_COLORS[self.parent.current_color_style]['background'])
+        text = 'Удалить тему' if self.parent.db.engine else 'Удалить лист'
+        TooltipCursorOnHover(self.btn_delete_sheet_icon, text=text, hand_cursor=True, x=470, y=220)
+
+    def put_icon_edit_sheet(self) -> None:
+        """ Иконка редактирование листа/темы. """
+
+        image = Image.open(settings.ICON_EDIT_SHEET['path'])
+        image = image.resize((20, 20))
+        icon = ImageTk.PhotoImage(image)
+        self.btn_edit_sheet_icon = tk.Button(self.container_manage_sheet_icons, image=icon,
+                                             command=self.parent.popup.edit_sheet_popup, bd=0)
+        self.btn_edit_sheet_icon.image = icon
+        self.btn_edit_sheet_icon.config(bg=styles.STYLE_COLORS[self.parent.current_color_style]['background'])
+        text = 'Редактировать тему' if self.parent.db.engine else 'Редактировать лист'
+        TooltipCursorOnHover(self.btn_edit_sheet_icon, text=text, hand_cursor=True, x=435, y=220)
+
+    def put_icon_add_data(self) -> None:
+        """ Иконка с добавлением записи - новое слово/фраза. """
+
+        image = Image.open(settings.ICON_ADD_DATA['path'])
+        image = image.resize((40, 40))
+        icon = ImageTk.PhotoImage(image)
+        self.btn_add_data_icon = tk.Button(self.container_choose_sheet, image=icon,
+                                           command=self.parent.popup.add_row, bd=0)
+        self.btn_add_data_icon.image = icon
+        self.btn_add_data_icon.config(bg=styles.STYLE_COLORS[self.parent.current_color_style]['background'])
+        TooltipCursorOnHover(self.btn_add_data_icon, text='Добавить запись', x=1070, y=220, hand_cursor=True)
+
+    def put_container_block_above_table(self, wrapper_choose_frame) -> None:
+        """ Сборка верхнего контейнера над таблицей, с выбором листа, иконками управления, поиском. """
+
+        self.container_choose_sheet = tk.Frame(wrapper_choose_frame, bg=self.bg)
+        self.container_choose_sheet.grid(row=0, column=0, sticky='w')
+
+        # Собираем контейнер с выбором листа из родителя - кроме reverso и сортировки, т.к. нестандартный рефреш и tltip
+        container_label_choose_sheet = self.parent.put_container_choose_sheet(
+            self, self.container_choose_sheet, tooltip_x_y=None, with_sorting=False, with_reverso=False)
+        container_label_choose_sheet.grid(row=0, column=0)
+
+        # Сборка кнопки сортировки из родителя
+        self.parent.put_icon_sort_sheets(container=container_label_choose_sheet, widget=self,
+                                         func='put_container_block_above_table', in_frame=wrapper_choose_frame)
+        self.parent.btn_sort_sheets.grid(row=0, column=3, sticky='w')
+        TooltipCursorOnHover(self.parent.btn_sort_sheets, x=430, y=215,
+                             text=f'Изменить сортировку на:\n{settings.SORTING_SHEETS[self.parent.sorted]}')
+
+        # Сборка иконок управления, поисковика и добавления записи
+        self.put_container_manage_sheet_icons()                     # Сборка контейнера с иконками управления листа
+
+        if self.parent.choosen_excel_list or self.parent.db.engine:
+            self.put_icon_add_data()                                # Сборка иконки добавления данных
+            self.btn_add_data_icon.grid(row=0, column=7, padx=5)
+            self.put_container_search_field()                       # Сборка контейнера с поиском в данных
+            self.search_frame.grid(column=6, row=0, sticky='nswe')
+
+    def put_container_manage_sheet_icons(self) -> None:
+        """ Сборка контейнера с иконками управления листом/темой. """
+
+        if not self.parent.wb and not self.parent.db.engine:
+            return
+
+        self.container_manage_sheet_icons = tk.Frame(self.container_choose_sheet, background=self.bg)
+        self.container_manage_sheet_icons.grid(row=0, column=5, padx=35)
+
+        # Иконку управления отображаются при выбранном листе Excel или подключении к БД
+        if self.parent.choosen_excel_list or self.parent.db.engine:
+            self.put_icon_delete_sheet()
+            self.put_icon_edit_sheet()
+            self.put_icon_add_sheet()
+
+            self.btn_edit_sheet_icon.grid(row=0, column=0, sticky='w')
+            self.btn_delete_sheet_icon.grid(row=0, column=1, sticky='w', padx=5)
+            self.btn_add_sheet_icon.grid(row=0, column=2, sticky='w')
+
+            # Активны только при выбранном листе/теме
+            if not (self.parent.choosen_excel_list or self.parent.choosen_db_theme):
+                self.btn_edit_sheet_icon.config(state='disabled')
+                self.btn_delete_sheet_icon.config(state='disabled')
+
+        else:
+            self.put_icon_add_sheet()
+            self.btn_add_sheet_icon.grid(row=0, column=0, sticky='w')
+
+    def put_container_search_field(self) -> None:
+        """ Сборка контейнера с поиском данных. """
+
+        self.container_choose_sheet.grid_columnconfigure(6, minsize=500)    # Резервирование пространства в 6 col
+        self.search_frame = tk.Frame(self.container_choose_sheet, bg=self.bg)
+
+        label = ttk.Label(self.search_frame, text='Поиск', style='BlItGrey.TLabel', padding=(90, 20, 5, 20))
+        label.pack(side='left')
+
+        self.search_word_form = ttk.Entry(self.search_frame, width=40)      # Ввод данных для поиска
+        if self.parent.search_key:                                          # Автозаполнение при наличии key поиска
+            self.search_word_form.insert(0, self.parent.search_key)
+        self.search_word_form.pack(side='left')
+
+        image = Image.open(settings.ICON_SEARCH_IN_SHEETS['path'])          # Кнопка ПОИСК
+        image = image.resize((14, 14))
+        icon = ImageTk.PhotoImage(image)
+        self.btn_search_word_in_data = ttk.Button(self.search_frame, command=self.handler_search_field, image=icon)
+        self.btn_search_word_in_data.image = icon
+        self.btn_search_word_in_data.pack(side='left')
+        TooltipCursorOnHover(self.btn_search_word_in_data, text='Нажмите, чтобы начать поиск', x=880, y=220)
+
+    def put_container_with_table(self) -> None:
+        """ Заполнение контейнера с таблицей. Получение данных + отрисовка. """
+
+        # Получаем срез данных для вывода на текущую страницу таблицы
+        self.pagi = Paginator(widget=self, array=self.get_table_data(), current_page=self.parent.data_pagi_page)
+        self.result_data = self.pagi.get_data_slice()
+
+        # Отрисовка строки-таблицы с заголовками
+        header_bg = {'background': styles.STYLE_COLORS[self.parent.current_color_style]['cnvs_headers_bg']}
+        canvas1 = tk.Canvas(self.table_container, height=25, **header_bg)
+        canvas1.pack(side=tk.TOP, fill=tk.BOTH)
+        header_frame_cnvs = ttk.Frame(canvas1)
+        canvas1.create_window((0, 0), window=header_frame_cnvs, anchor='nw')
+        header_y = 0
+        header_x = 0
+        columns = list(settings.COLUMN_WIDTH.items())           # Чтобы легко обратиться к последнему элементу
+        for idx, (k, v) in enumerate(columns):
+            canvas1.create_text(header_x + 10, header_y + 5, text=k, anchor='nw', width=v - 10,
+                                **styles.CANVAS_HEADERS)
+            if idx != len(columns) - 1:                         # Правую границу НЕ отрисовываем (т.к. ниже прокрутка)
+                canvas1.create_rectangle(header_x + 1, header_y, header_x + v + 1, 30,
+                                         **styles.CANVAS_TABLE_BORDER_DASH_GRAY)
+            header_x += v
+
+        # Рисуем таблицу с данными
+        canvas = tk.Canvas(self.table_container, background='white')        # Создаём объект canvas
+        canvas.pack(expand=tk.YES, fill=tk.BOTH, side=tk.LEFT)
+
+        table_frame = ttk.Frame(canvas)                   # Создаем div внутри Canvas, который будет содержать данные
+        canvas.create_window((0, 0), window=table_frame, anchor='nw')
+        coord_y = 0
+        all_rows_data = []                                # Список для хранения всех строк данных + info о флаге выбора
+
+        for idx, row in enumerate(self.result_data):
+            x1 = 0
+
+            if self.parent.data_type == 'Excel':
+                tls.context_formatting(row, indent='\n')        # Форматируем Excel для вывода - заменяем пробелы на \n
+
+            row_height = tls.calculate_row_high_for_cnvs(row)   # Расчет высоты строки в зав-ти от длины контента
+            row_data = {'rect_ids': [],          # Словарь для хранения данных строки, id прямоугольников + флаг выбора
+                        'is_selected': False}
+
+            # Создаём рамку и текст для каждого элемента строки
+            for col_idx, (header, cell) in enumerate(zip(settings.COLUMN_WIDTH.keys(), row)):
+
+                if col_idx == 5:    # Служебный - инфо о теме, для вывода в popup, не отображаем
+                    continue
+
+                col_width = settings.COLUMN_WIDTH[header]
+                x2 = x1 + col_width
+                column_width = settings.COLUMN_WIDTH[header] - 10   # Ширина столбца для расчета переноса текста
+                rect_id = canvas.create_rectangle(x1, coord_y, x2, coord_y + row_height,
+                                                  **styles.CANVAS_TABLE_BORDER_DASH_GRAY)
+
+                # Для столбцов idx 1 и 4 делаем иконки озвучки
+                if col_idx == 1 or (col_idx == 4 and cell not in ('\n', '', ' ')):     # Кроме пустых
+
+                    if col_idx == 1:                                    # Определяем обработчик
+                        command = functools.partial(self.parent.engine_speech.say_out, data=cell)
+                    elif col_idx == 4:
+                        command = functools.partial(self._save_tuple_from_speech, data_list=row)
+
+                    image = Image.open(settings.ICON_SOUND['path'])     # Иконка озвучки
+                    image = image.resize((20, 20))
+                    icon = ImageTk.PhotoImage(image)
+                    icon_say = tk.Button(canvas, bd=0, image=icon, background='white', command=command)
+                    icon_say.image = icon
+                    canvas.create_window(x1 + 15, coord_y + 20, window=icon_say)
+                    x1 += 25
+                    column_width -= 25
+
+                    # Привязываем события к иконкам озвучки
+                    icon_say.bind("<Enter>", functools.partial(self.event_on_hover_with_cursor_change,
+                                                               row_data=row_data, canvas=canvas,
+                                                               all_rows_data=all_rows_data, widget=icon_say,
+                                                               col_idx=col_idx))
+                    icon_say.bind("<Leave>", functools.partial(self.event_on_leave_with_cursor_change,
+                                                               row_data=row_data, canvas=canvas,
+                                                               all_rows_data=all_rows_data, widget=icon_say))
+
+                text_id = canvas.create_text(x1 + 5, coord_y + 10, anchor="nw", text=cell,
+                                             width=column_width,
+                                             **styles.CANVAS_TABLE_TEXT)
+                x1 = x2                                             # Обновляем x1 для следующей ячейки
+                row_data['rect_ids'].append(rect_id)                # Добавляем id прямоугольника в row_data
+                all_rows_data.append(row_data)                      # Добавляем в итоговый список словарь строки
+
+                # Привязываем реагирование на события для отрисованных элементов - текста и пространства в рамке
+                self.events_set_main_table_events(rect_id, canvas, all_rows_data, row_data, row)
+                self.events_set_main_table_events(text_id, canvas, all_rows_data, row_data, row)
+
+            # Добавляем кнопку "Редактировать" справа от данных в строке
+            edit_btn = ttk.Button(canvas, text='Править', command=lambda row=row: self.parent.popup.edit_row_popup(row),
+                                  style='Edit.TButton')
+            canvas.create_window(x1 + 45, coord_y + 20, window=edit_btn)
+            rect_id = canvas.create_rectangle(x1, coord_y, x1 + 100, coord_y + row_height,
+                                              **styles.CANVAS_TABLE_BORDER_DASH_GRAY)
+            coord_y += row_height
+            row_data['rect_ids'].append(rect_id)            # Добавляем id ячейки в инфо о строке
+
+            # Привязываем события для нового rect_id - т.к. он вне цикла, и к кнопкам
+            self.events_set_main_table_events(rect_id, canvas, all_rows_data, row_data, row)
+            edit_btn.bind("<Enter>", functools.partial(self.event_on_hover, row_data=row_data, canvas=canvas,
+                                                       all_rows_data=all_rows_data))
+            edit_btn.bind("<Leave>", functools.partial(self.event_off_hover, row_data=row_data, canvas=canvas,
+                                                       all_rows_data=all_rows_data))
+
+        # Добавляем вертикальный скроллбар для Canvas + прокрутку по всей области canvas
+        canvas.bind_all("<MouseWheel>", lambda event, canvas=canvas: self.parent.on_mouse_wheel(event, canvas))
+        scroll_panel = ttk.Scrollbar(canvas, orient='vertical', command=canvas.yview)
+        canvas.configure(yscrollcommand=scroll_panel.set)
+        scroll_panel.pack(side=tk.RIGHT, fill=tk.Y)
+        table_frame.update_idletasks()                                  # Обновляем после всех операций рисования
+        canvas.config(scrollregion=canvas.bbox("all"))                  # Устанавливаем область прокрутки
+
     def put_bottom_container(self) -> None:
-        """ Сборка контейнера с пагинацией """
+        """ Сборка контейнера с пагинацией. """
 
         # Определяем цвета подсветки кнопок пагинации при select и hover on
         select_colour = styles.STYLE_COLORS[self.parent.current_color_style]['menu_btn_color_main']
@@ -144,254 +395,9 @@ class DataWindow(ttk.Frame):
                                           command=lambda: self.pagi.go_to_page_number(int(f_to_page.get())))
         self.btn_go_to_page.grid(row=0, column=2, sticky='e', padx=(3, 20))
 
-    def put_icon_add_sheet(self) -> None:
-        """ Иконка добавление нового листа """
-
-        image = Image.open(settings.ICON_ADD_SHEET['path'])
-        image = image.resize((20, 20))
-        icon = ImageTk.PhotoImage(image)
-        self.btn_add_sheet_icon = tk.Button(self.container_manage_sheet_icons, image=icon,
-                                            command=self.parent.popup.add_new_sheet_popup, bd=0)
-        self.btn_add_sheet_icon.image = icon
-        self.btn_add_sheet_icon.config(bg=styles.STYLE_COLORS[self.parent.current_color_style]['background'])
-        text = 'Создать новую тему' if self.parent.db.engine else 'Создать новый лист'
-        TooltipCursorOnHover(self.btn_add_sheet_icon, text=text, hand_cursor=True, x=435, y=220)
-
-    def put_icon_delete_sheet(self) -> None:
-        """ Иконка удаление листа """
-
-        image = Image.open(settings.ICON_DELETE_SHEET['path'])
-        image = image.resize((20, 20))
-        icon = ImageTk.PhotoImage(image)
-        self.btn_delete_sheet_icon = tk.Button(self.container_manage_sheet_icons, image=icon,
-                                               command=self.parent.popup.on_click_DELETESHEET,
-                                               bd=0)
-        self.btn_delete_sheet_icon.image = icon
-        self.btn_delete_sheet_icon.config(bg=styles.STYLE_COLORS[self.parent.current_color_style]['background'])
-        text = 'Удалить тему' if self.parent.db.engine else 'Удалить лист'
-        TooltipCursorOnHover(self.btn_delete_sheet_icon, text=text, hand_cursor=True, x=470, y=220)
-
-    def put_icon_edit_sheet(self) -> None:
-        """ Иконка редактирование листа """
-
-        image = Image.open(settings.ICON_EDIT_SHEET['path'])
-        image = image.resize((20, 20))
-        icon = ImageTk.PhotoImage(image)
-        self.btn_edit_sheet_icon = tk.Button(self.container_manage_sheet_icons, image=icon,
-                                             command=self.parent.popup.edit_sheet_popup, bd=0)
-        self.btn_edit_sheet_icon.image = icon
-        self.btn_edit_sheet_icon.config(bg=styles.STYLE_COLORS[self.parent.current_color_style]['background'])
-        text = 'Редактировать тему' if self.parent.db.engine else 'Редактировать лист'
-        TooltipCursorOnHover(self.btn_edit_sheet_icon, text=text, hand_cursor=True, x=435, y=220)
-
-    def put_icon_add_data(self) -> None:
-        """ Иконка с добавлением записи данных """
-
-        image = Image.open(settings.ICON_ADD_DATA['path'])
-        image = image.resize((40, 40))
-        icon = ImageTk.PhotoImage(image)
-        self.btn_add_data_icon = tk.Button(self.container_choose_sheet, image=icon,
-                                           command=self.parent.popup.add_row, bd=0)
-        self.btn_add_data_icon.image = icon
-        self.btn_add_data_icon.config(bg=styles.STYLE_COLORS[self.parent.current_color_style]['background'])
-        TooltipCursorOnHover(self.btn_add_data_icon, text='Добавить запись', x=1070, y=220, hand_cursor=True)
-
-    def put_container_block_above_table(self, wrapper_choose_frame) -> None:
-        """ Сборка верхнего контейнера над таблицей, с выбором листа, иконками управления"""
-
-        self.container_choose_sheet = tk.Frame(wrapper_choose_frame, bg=self.bg)
-        self.container_choose_sheet.grid(row=0, column=0, sticky='w')
-
-        # Собираем контейнер с выбором листа из родителя - кроме reverso и сортировки, т.к. нестандартный рефреш и tltip
-        container_label_choose_sheet = self.parent.put_container_choose_sheet(
-            self, self.container_choose_sheet, tooltip_x_y=None, with_sorting=False, with_reverso=False)
-        container_label_choose_sheet.grid(row=0, column=0)
-
-        # Сборка кнопки сортировки из родителя
-        self.parent.put_icon_sort_sheets(container=container_label_choose_sheet, widget=self,
-                                         func='put_container_block_above_table', in_frame=wrapper_choose_frame)
-        self.parent.btn_sort_sheets.grid(row=0, column=3, sticky='w')
-        TooltipCursorOnHover(self.parent.btn_sort_sheets, x=430, y=215,
-                             text=f'Изменить сортировку на:\n{settings.SORTING_SHEETS[self.parent.sorted]}')
-
-        # Сборка иконок управления, поисковика и добавления записи
-        self.put_container_manage_sheet_icons()                     # Сборка контейнера с иконками управления листа
-
-        if self.parent.choosen_excel_list or self.parent.db.engine:
-            self.put_icon_add_data()                                # Сборка иконки добавления данных
-            self.btn_add_data_icon.grid(row=0, column=7, padx=5)
-            self.put_container_search_field()                       # Сборка контейнера с поиском в данных
-            self.search_frame.grid(column=6, row=0, sticky='nswe')
-
-    def put_container_manage_sheet_icons(self) -> None:
-        """ Сборка контейнера с иконками управления листом/темой """
-
-        if not self.parent.wb and not self.parent.db.engine:
-            return
-
-        self.container_manage_sheet_icons = tk.Frame(self.container_choose_sheet, background=self.bg)
-        self.container_manage_sheet_icons.grid(row=0, column=5, padx=35)
-
-        # Иконку управления отображаются при выбранном листе Excel или подключении к БД
-        if self.parent.choosen_excel_list or self.parent.db.engine:
-            self.put_icon_delete_sheet()
-            self.put_icon_edit_sheet()
-            self.put_icon_add_sheet()
-
-            self.btn_edit_sheet_icon.grid(row=0, column=0, sticky='w')
-            self.btn_delete_sheet_icon.grid(row=0, column=1, sticky='w', padx=5)
-            self.btn_add_sheet_icon.grid(row=0, column=2, sticky='w')
-
-            # Активны только при выбранном листе/теме
-            if not (self.parent.choosen_excel_list or self.parent.choosen_db_theme):
-                self.btn_edit_sheet_icon.config(state='disabled')
-                self.btn_delete_sheet_icon.config(state='disabled')
-
-        else:
-            self.put_icon_add_sheet()
-            self.btn_add_sheet_icon.grid(row=0, column=0, sticky='w')
-
-    def put_container_search_field(self) -> None:
-        """ Сборка контейнера с поиском данных """
-
-        self.container_choose_sheet.grid_columnconfigure(6, minsize=500)    # Резервирование пространства в 6 col
-        self.search_frame = tk.Frame(self.container_choose_sheet, bg=self.bg)
-
-        label = ttk.Label(self.search_frame, text='Поиск', style='BlItGrey.TLabel', padding=(90, 20, 5, 20))
-        label.pack(side='left')
-
-        self.search_word_form = ttk.Entry(self.search_frame, width=40)      # Ввод данных для поиска
-        if self.parent.search_key:                                          # Автозаполнение при наличии key поиска
-            self.search_word_form.insert(0, self.parent.search_key)
-        self.search_word_form.pack(side='left')
-
-        image = Image.open(settings.ICON_SEARCH_IN_SHEETS['path'])          # Кнопка ПОИСК
-        image = image.resize((14, 14))
-        icon = ImageTk.PhotoImage(image)
-        self.btn_search_word_in_data = ttk.Button(self.search_frame, command=self.handler_search_field, image=icon)
-        self.btn_search_word_in_data.image = icon
-        self.btn_search_word_in_data.pack(side='left')
-        TooltipCursorOnHover(self.btn_search_word_in_data, text='Нажмите, чтобы начать поиск', x=880, y=220)
-
-    def put_container_with_table(self) -> None:
-        """ Заполнение контейнера с таблицей. Получение данных + отрисовка """
-
-        # Получаем срез данных для вывода на текущую страницу таблицы
-        self.pagi = Paginator(widget=self, array=self.get_table_data(), current_page=self.parent.data_pagi_page)
-        self.result_data = self.pagi.get_data_slice()
-
-        # Отрисовка строки-таблицы с заголовками
-        header_bg = {'background': styles.STYLE_COLORS[self.parent.current_color_style]['cnvs_headers_bg']}
-        canvas1 = tk.Canvas(self.table_container, height=25, **header_bg)
-        canvas1.pack(side=tk.TOP, fill=tk.BOTH)
-        header_frame_cnvs = ttk.Frame(canvas1)
-        canvas1.create_window((0, 0), window=header_frame_cnvs, anchor='nw')
-        header_y = 0
-        header_x = 0
-        columns = list(settings.COLUMN_WIDTH.items())           # Чтобы легко обратиться к последнему элементу
-        for idx, (k, v) in enumerate(columns):
-            canvas1.create_text(header_x + 10, header_y + 5, text=k, anchor='nw', width=v - 10,
-                                **styles.CANVAS_HEADERS)
-            if idx != len(columns) - 1:                         # Правую границу НЕ отрисовываем (т.к. ниже прокрутка)
-                canvas1.create_rectangle(header_x + 1, header_y, header_x + v + 1, 30,
-                                         **styles.CANVAS_TABLE_BORDER_DASH_GRAY)
-            header_x += v
-
-        # Рисуем таблицу с данными
-        canvas = tk.Canvas(self.table_container, background='white')        # Создаём объект canvas
-        canvas.pack(expand=tk.YES, fill=tk.BOTH, side=tk.LEFT)
-
-        table_frame = ttk.Frame(canvas)                   # Создаем div внутри Canvas, который будет содержать данные
-        canvas.create_window((0, 0), window=table_frame, anchor='nw')
-        coord_y = 0
-        all_rows_data = []                                # Список для хранения всех строк данных + info о флаге выбора
-
-        for idx, row in enumerate(self.result_data):
-            x1 = 0
-
-            if self.parent.data_type == 'Excel':
-                tls.context_formatting(row, indent='\n')  # Форматируем Excel для вывода - заменяем пробелы на \n
-
-            row_height = tls.calculate_row_high_for_cnvs(row)       # Расчет высоты строки в зав-ти от длины контента
-            row_data = {'rect_ids': [],          # Словарь для хранения данных строки, id прямоугольников + флаг выбора
-                        'is_selected': False}
-
-            # Создаём рамку и текст для каждого элемента строки
-            for col_idx, (header, cell) in enumerate(zip(settings.COLUMN_WIDTH.keys(), row)):
-
-                if col_idx == 5:    # Служебный - инфо о теме, для вывода в popup, не отображаем
-                    continue
-
-                col_width = settings.COLUMN_WIDTH[header]
-                x2 = x1 + col_width
-                column_width = settings.COLUMN_WIDTH[header] - 10   # Ширина столбца для расчета переноса текста
-                rect_id = canvas.create_rectangle(x1, coord_y, x2, coord_y + row_height,
-                                                  **styles.CANVAS_TABLE_BORDER_DASH_GRAY)
-
-                # Для столбцов idx 1 и 4 делаем иконки озвучки
-                if col_idx == 1 or (col_idx == 4 and cell not in ('\n', '', ' ')):     # Кроме пустых
-
-                    if col_idx == 1:                                    # Определяем обработчик
-                        command = functools.partial(self.parent.engine_speech.say_out, data=cell)
-                    elif col_idx == 4:
-                        command = functools.partial(self._save_tuple_from_speech, data_list=row)
-
-                    image = Image.open(settings.ICON_SOUND['path'])     # Иконка озвучки
-                    image = image.resize((20, 20))
-                    icon = ImageTk.PhotoImage(image)
-                    icon_say = tk.Button(canvas, bd=0, image=icon, background='white', command=command)
-                    icon_say.image = icon
-                    canvas.create_window(x1 + 15, coord_y + 20, window=icon_say)
-                    x1 += 25
-                    column_width -= 25
-
-                    # Привязываем события к иконкам озвучки
-                    icon_say.bind("<Enter>", functools.partial(self.event_on_hover_with_cursor_change,
-                                                               row_data=row_data, canvas=canvas,
-                                                               all_rows_data=all_rows_data, widget=icon_say,
-                                                               col_idx=col_idx))
-                    icon_say.bind("<Leave>", functools.partial(self.event_on_leave_with_cursor_change,
-                                                               row_data=row_data, canvas=canvas,
-                                                               all_rows_data=all_rows_data, widget=icon_say))
-
-                text_id = canvas.create_text(x1 + 5, coord_y + 10, anchor="nw", text=cell,
-                                             width=column_width,
-                                             **styles.CANVAS_TABLE_TEXT)
-                x1 = x2                                             # Обновляем x1 для следующей ячейки
-                row_data['rect_ids'].append(rect_id)                # Добавляем id прямоугольника в row_data
-                all_rows_data.append(row_data)                      # Добавляем в итоговый список словарь строки
-
-                # Привязываем реагирование на события для отрисованных элементов - текста и пространства в рамке
-                self.events_set_main_table_events(rect_id, canvas, all_rows_data, row_data, row)
-                self.events_set_main_table_events(text_id, canvas, all_rows_data, row_data, row)
-
-            # Добавляем кнопку "Редактировать" справа от данных в строке
-            edit_btn = ttk.Button(canvas, text='Править', command=lambda row=row: self.parent.popup.edit_row_popup(row),
-                                  style='Edit.TButton')
-            canvas.create_window(x1 + 45, coord_y + 20, window=edit_btn)
-            rect_id = canvas.create_rectangle(x1, coord_y, x1 + 100, coord_y + row_height,
-                                              **styles.CANVAS_TABLE_BORDER_DASH_GRAY)
-            coord_y += row_height
-            row_data['rect_ids'].append(rect_id)            # Добавляем id ячейки в инфо о строке
-
-            # Привязываем события для нового rect_id - т.к. он вне цикла, и к кнопкам
-            self.events_set_main_table_events(rect_id, canvas, all_rows_data, row_data, row)
-            edit_btn.bind("<Enter>", functools.partial(self.event_on_hover, row_data=row_data, canvas=canvas,
-                                                       all_rows_data=all_rows_data))
-            edit_btn.bind("<Leave>", functools.partial(self.event_off_hover, row_data=row_data, canvas=canvas,
-                                                       all_rows_data=all_rows_data))
-
-        # Добавляем вертикальный скроллбар для Canvas + прокрутку по всей области canvas
-        canvas.bind_all("<MouseWheel>", lambda event, canvas=canvas: self.parent.on_mouse_wheel(event, canvas))
-        scroll_panel = ttk.Scrollbar(canvas, orient='vertical', command=canvas.yview)
-        canvas.configure(yscrollcommand=scroll_panel.set)
-        scroll_panel.pack(side=tk.RIGHT, fill=tk.Y)
-        table_frame.update_idletasks()                                  # Обновляем после всех операций рисования
-        canvas.config(scrollregion=canvas.bbox("all"))                  # Устанавливаем область прокрутки
-
     def handler_search_field(self) -> None:
         """ Обработчик поиска. Сохраняет отфильтрованный по введённому в поле ключу список строк
-        (по полю слово/фраза) + обновляет окно с таблицей"""
+        (по полю слово/фраза) + обновляет окно с таблицей. """
 
         # Фиксируем ключ поиска и массив отфильтрованных данных
         self.parent.search_key = self.search_word_form.get().lower()
@@ -405,7 +411,7 @@ class DataWindow(ttk.Frame):
 
     def handler_choose_sheet(self, cmbbx_list: list[str]) -> None:
         """ Обработчик кнопки выбора листа.
-        Вызывает родительский метод выбора листа из списка combobox + обновляет пагинацию"""
+        Вызывает родительский метод выбора листа из списка combobox + обновляет пагинацию. """
 
         self.parent.handler_select_sheet(self.cmbbx_choose_sheet.get(), cmbbx_list)
 
@@ -417,7 +423,7 @@ class DataWindow(ttk.Frame):
         self.parent.refresh()
 
     def get_table_data(self) -> list:
-        """ Получение списка с данными для отображения """
+        """ Получение списка с данными для отображения. """
 
         if not self.parent.wb and not self.parent.db.engine:                                # Заглушка
             return []
@@ -441,7 +447,7 @@ class DataWindow(ttk.Frame):
 
     def _reset_selection_hover_events(self, canvas: tk.Canvas, all_rows_data: list[dict]) -> None:
         """
-        Сбрасываем подсветку для всех строк
+        Сбрасываем подсветку для всех строк.
 
         :param canvas: объект Canvas
         :param all_rows_data: список со словарями, содержащими информацию о строке: id объектов строки и признак выбора
@@ -454,7 +460,7 @@ class DataWindow(ttk.Frame):
 
     def event_on_hover(self, event, row_data: dict, canvas: tk.Canvas, all_rows_data: list[dict]) -> None:
         """
-        Подсветка строки при наведении курсора
+        Подсветка строки при наведении курсора.
 
         :param row_data: словарь с информацией о текущей строке
         :param canvas: объект Canvas
@@ -466,7 +472,7 @@ class DataWindow(ttk.Frame):
 
     def event_off_hover(self, event, row_data: dict, canvas: tk.Canvas, all_rows_data: list[dict]) -> None:
         """
-        Убираем подсветку при отведении курсора
+        Убираем подсветку при отведении курсора.
 
         :param row_data: словарь с информацией о текущей строке
         :param canvas: объект Canvas
@@ -478,7 +484,7 @@ class DataWindow(ttk.Frame):
 
     def event_on_single_click(self, event, row_data: dict, canvas: tk.Canvas, all_rows_data: list[dict]) -> None:
         """
-        Обработчик события одиночный клик
+        Обработчик события одиночный клик.
 
         :param row_data: словарь с информацией о текущей строке
         :param canvas: объект Canvas
@@ -492,13 +498,14 @@ class DataWindow(ttk.Frame):
     def event_on_double_click(self, event, row_data: dict, canvas: tk.Canvas, all_rows_data: list[dict],
                               row: list[str]) -> None:
         """
-        Обработчик события двойной клик
+        Обработчик события двойной клик.
 
         :param row_data: словарь с информацией о текущей строке
         :param canvas: объект Canvas
         :param all_rows_data: список со словарями, содержащими информацию о строке: id объектов строки и признак выбора
         :param row: список, содержащий информацию, отображаемую в строке таблицы
-        :return: None"""
+        :return: None
+        """
         self._reset_selection_hover_events(canvas, all_rows_data)   # Сбрасываем подсветку для всех строк
         for rect_id in row_data['rect_ids']:
             canvas.itemconfig(rect_id, fill=styles.EVENT_SELECTED_CURSOR_TABLE)   # Подсвечиваем новую выбранную строку
@@ -508,13 +515,14 @@ class DataWindow(ttk.Frame):
     def event_on_right_button_click(self, event, row_data: dict, canvas: tk.Canvas, all_rows_data: list[dict],
                               row: list[int | str]) -> None:
         """
-        Обработчик события клик правой кнопкой
+        Обработчик события клик правой кнопкой - вызов контекстного меню.
 
         :param row_data: словарь с информацией о текущей строке
         :param canvas: объект Canvas
         :param all_rows_data: список со словарями, содержащими информацию о строке: id объектов строки и признак выбора
         :param row: список, содержащий информацию, отображаемую в строке таблицы
-        :return: None"""
+        :return: None
+        """
         self._reset_selection_hover_events(canvas, all_rows_data)   # Сбрасываем подсветку для всех строк
         for rect_id in row_data['rect_ids']:
             canvas.itemconfig(rect_id, fill=styles.EVENT_SELECTED_CURSOR_TABLE)   # Подсвечиваем новую выбранную строку
@@ -532,7 +540,7 @@ class DataWindow(ttk.Frame):
 
     def _delete_row_in_context_menu(self, row: list) -> None:
         """
-        Удаление строки из листа Excel по данным из строки таблицы + обновление таблицы Canvas
+        Удаление строки из листа Excel по данным из строки таблицы + обновление таблицы Canvas.
 
         :param row: список с данными для отображения строки в таблице,  row:
                     [4, 'word', 'transcription', 'translate', 'context']
@@ -557,7 +565,7 @@ class DataWindow(ttk.Frame):
     def events_set_main_table_events(self, obj_id: int, canvas: tk.Canvas, all_rows_data: list[dict], row_data: dict,
                                      row: list[str]) -> None:
         """
-        Привязка основных событий таблицы к объекту canvas: Enter, Leave, Button-1, Button-3, Double-1
+        Привязка основных событий таблицы к объекту canvas: Enter, Leave, Button-1, Button-3, Double-1.
 
         :param obj_id: id созданного объекта Canvas
         :param canvas: объект Canvas
@@ -580,7 +588,7 @@ class DataWindow(ttk.Frame):
     def event_on_hover_with_cursor_change(self, event, widget, row_data: dict, canvas: tk.Canvas,
                                           all_rows_data: list[dict], col_idx: int) -> None:
         """
-        Расширение к обработчику события при наведении: дополнено изменение курсора на hand + подсказка
+        Расширение к обработчику события при наведении: дополнено изменение курсора на hand + подсказка.
 
         :param widget: виджет tkinter, для которого будет меняться курсор (Button и т.д.)
         :param row_data: словарь с информацией о текущей строке
@@ -596,7 +604,7 @@ class DataWindow(ttk.Frame):
     def event_on_leave_with_cursor_change(self, event, widget, row_data: dict, canvas: tk.Canvas,
                                           all_rows_data: list[dict]) -> None:
         """
-        Расширение к обработчику события при отведении: дополнено изменение курсора на стандартный
+        Расширение к обработчику события при отведении: дополнено изменение курсора на стандартный.
 
         :param widget: виджет tkinter, для которого будет меняться курсор (Button и т.д.)
         :param row_data: словарь с информацией о текущей строке
@@ -609,7 +617,7 @@ class DataWindow(ttk.Frame):
 
     def _save_tuple_from_speech(self, data_list: list[int | str]) -> None:
         """
-        Расширение к обработчику частичной озвучки: дополнена запись в атрибуты класса
+        Расширение к обработчику частичной озвучки: дополнена запись в атрибуты класса:
         self.current_say, self.index_context
 
         :param data_list: список с данными строки в формате: [4, 'word', 'transcription', 'translate', 'context']
@@ -618,7 +626,7 @@ class DataWindow(ttk.Frame):
             data_list=data_list, current_say=self.current_say, index_context=self.index_context)
 
     def _validate_form_pagi_to(self, input) -> bool:
-        """ Валидация формы ввода перехода к странице № в пагинации """
+        """ Валидация формы ввода перехода к странице № в пагинации. """
 
         try:
             if input == '':

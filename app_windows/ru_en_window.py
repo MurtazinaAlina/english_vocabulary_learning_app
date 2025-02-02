@@ -1,9 +1,9 @@
+"""
+Окно приложения с тестированием перевода с русского языка на английский.
+"""
 import argostranslate.translate
-import random
 import tkinter as tk
-from tkinter import ttk, messagebox as mbox
-
-from PIL import Image, ImageTk
+from tkinter import ttk
 
 import settings
 import styles
@@ -12,19 +12,20 @@ from Utils.custom_widgets.tooltips import TooltipCursorOnHover
 
 
 class RuEnWindow(ttk.Frame):
-    """ Окно для вывода ru данных """
+    """ Окно для отображения тестирования ru-en.  """
 
     def __init__(self, parent):
+
         super().__init__(parent)
         self.parent = parent
 
         self.bg = styles.STYLE_COLORS[self.parent.current_color_style]['background']
 
-        self.mock_data = ['' for i in range(0, 5)]  # Заглушка для данных с пустым выводом
-        self.current_say = None  # Последний озвучивавшийся контекст
-        self.index_context = 0  # Индекс примера контекста к озвучке
-        self.test_type = settings.TEST_TYPES[1]  # Тип тестирования для фиксации статистики
-        self.navigation = self.parent.navigation_ru_en  # Тип навигации из родителя
+        self.mock_data = ['' for i in range(0, 5)]                      # Заглушка для данных с пустым выводом
+        self.current_say = None                                         # Последний озвучивавшийся контекст
+        self.index_context = 0                                          # Индекс примера контекста к озвучке
+        self.test_type = settings.TEST_TYPES[1]                         # Тип тестирования для фиксации статистики
+        self.navigation = self.parent.navigation_ru_en                  # Тип навигации из родителя
 
         self.put_widgets()
 
@@ -37,15 +38,15 @@ class RuEnWindow(ttk.Frame):
         if not self.check_if_not_db():                      # Проверка на подключение к какой-либо базе + заглушка data
             self.get_data()                                 # Формирование self.data для вывода
 
-        self.wrapper_word_stat = ttk.Frame(self)  # обёртка для div со словом (слева) и статистикой (справа)
+        self.wrapper_word_stat = ttk.Frame(self)            # обёртка для div со словом (слева) и статистикой (справа)
         self.wrapper_word_stat.grid(row=1, column=0, columnspan=2, sticky='nswe')
 
         # Сборка основных контейнеров с данными
-        self.put_container_choose_sheet()  # Сборка контейнера выбора листа
-        self.put_container_random_word(self.wrapper_word_stat)  # Сборка контейнера с рандомным словом - слева
-        self.put_container_statistic(self.wrapper_word_stat)  # Сборка контейнера со статистикой - справа
-        self.put_container_check_if_answer()  # Сборка контейнера с чек-боксом просмотра ответа
-        self.put_container_show_answer()  # Сборка контейнера с ответами
+        self.put_container_choose_sheet()                           # Сборка контейнера выбора листа
+        self.put_container_random_word(self.wrapper_word_stat)      # Сборка контейнера с рандомным словом - слева
+        self.put_container_statistic(self.wrapper_word_stat)        # Сборка контейнера со статистикой - справа
+        self.put_container_check_if_answer()                        # Сборка контейнера с чек-боксом просмотра ответа
+        self.put_container_show_answer()                            # Сборка контейнера с ответами
 
     def put_container_choose_sheet(self) -> None:
         """ Сборка контейнера с выбором листа """
@@ -108,7 +109,7 @@ class RuEnWindow(ttk.Frame):
         btn_wrapper.grid(row=6, column=0, columnspan=2, sticky='w', pady=10)
 
     def put_container_statistic(self, wrapper_word_stat) -> None:
-        """ Сборка контейнера со статистикой """
+        """ Сборка контейнера со статистикой ответов"""
 
         # Собираем контейнер из родительского метода
         self.inner_frame_right = self.parent.put_container_with_stat(self, wrapper_word_stat)
@@ -140,7 +141,7 @@ class RuEnWindow(ttk.Frame):
                                padding=(20, 10, 20, 0))
         label_word.grid(row=0, column=0, sticky='w')                                   # Лейбл Слово/Фраза
 
-        # Сборка иконки проговаривания Слово/фраза из родителя (при наличии данных)
+        # Сборка иконки проговаривания Слова/фразы из родителя (при наличии данных)
         if self.data[0]:
             self.parent.put_icon_say_aloud(widget=self, container=word_answer_container)
             TooltipCursorOnHover(self.parent.icon_say_aloud, text='Произнести слово/фразу', x=50, y=554,

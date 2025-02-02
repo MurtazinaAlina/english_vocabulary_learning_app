@@ -1,3 +1,6 @@
+"""
+Окно приложения с тестированием перевода с английского языка на русский по аудио произношения слова.
+"""
 import tkinter as tk
 from tkinter import ttk
 
@@ -7,7 +10,7 @@ from Utils.custom_widgets.tooltips import TooltipCursorOnHover
 
 
 class EnRuAudioWindow(ttk.Frame):
-    """ Окно для вывода en-ru audio данных """
+    """ Окно для отображения тестирования en-ru audio. """
 
     def __init__(self, parent):
 
@@ -24,7 +27,7 @@ class EnRuAudioWindow(ttk.Frame):
         self.put_widgets()
 
     def put_widgets(self) -> None:
-        """ Сборка основного окна страницы """
+        """ Сборка основного окна страницы. """
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
@@ -43,7 +46,7 @@ class EnRuAudioWindow(ttk.Frame):
         self.put_container_show_answer()                            # Сборка контейнера с ответами
 
     def put_container_choose_sheet(self) -> None:
-        """ Сборка контейнера с выбором листа """
+        """ Сборка контейнера с выбором листа. """
 
         # Собираем контейнер из родительского метода
         container_choose_sheet = self.parent.put_container_choose_sheet(self, self)
@@ -108,7 +111,7 @@ class EnRuAudioWindow(ttk.Frame):
         btn_wrapper.grid(row=4, column=0, columnspan=2, sticky='w')
 
     def put_container_statistic(self, wrapper_word_stat) -> None:
-        """ Сборка контейнера со статистикой """
+        """ Сборка контейнера со статистикой ответов на тестирование. """
 
         # Собираем контейнер из родительского метода
         self.inner_frame_right = self.parent.put_container_with_stat(self, wrapper_word_stat)
@@ -116,14 +119,14 @@ class EnRuAudioWindow(ttk.Frame):
         self.inner_frame_right.grid_columnconfigure(0, minsize=50)                  # Отступ слева
 
     def put_container_check_if_answer(self) -> None:
-        """ Контейнер с чек-боксом ПОКАЗЫВАТЬ ОТВЕТЫ и кнопкой сборки контейнера с ответами """
+        """ Контейнер с чек-боксом ПОКАЗЫВАТЬ ОТВЕТЫ и кнопкой сборки контейнера с ответами. """
 
         # Сборка контейнера с содержимым из родителя
         answer_frame = self.parent.put_container_check_if_answer(widget=self, parent_container=self.inner_frame_left)
         answer_frame.grid(row=8, column=0, sticky='wse', pady=(95, 0))
 
     def put_container_show_answer(self) -> None:
-        """ Сборка контейнера с ответами """
+        """ Сборка контейнера с ответами. """
 
         if self.parent.show_answer:                                     # Отображение только при включенном чек-боксе
 
@@ -179,7 +182,7 @@ class EnRuAudioWindow(ttk.Frame):
         self.parent.handler_icon_reverso(self)                                                  # Метод из родителя
 
     def set_ch_box(self) -> None:
-        """ Фиксация в переменных основного окна приложения отметки чек-бокса """
+        """ Фиксация в переменных основного окна приложения отметки чек-бокса. """
         self.parent.show_answer = self.feature_var.get()
 
     def check_if_show_answer(self) -> bool:
@@ -192,7 +195,7 @@ class EnRuAudioWindow(ttk.Frame):
     def check_if_not_db(self) -> bool:
         """
         Проверка если не выбран тип базы или файл с базой.
-        Устанавливает пустые данные-заглушку для отображения визуала контейнеров
+        Устанавливает пустые данные-заглушку для отображения визуала контейнеров.
         """
         return self.parent.check_if_not_db(self)                                                # Метод из родителя
 
@@ -215,7 +218,7 @@ class EnRuAudioWindow(ttk.Frame):
         self.parent.handler_next_button(self)                                                   # Метод из родителя
 
     def handler_icon_previous_word(self) -> None:
-        """ Обработчик иконки ПРЕДЫДУЩЕЕ СЛОВО. Возвращает к предыдущей записи """
+        """ Обработчик иконки ПРЕДЫДУЩЕЕ СЛОВО. Возвращает к предыдущей записи. """
         self.parent.handler_previous_word(self)                                                 # Метод из родителя
 
     def handler_yes_button(self) -> None:
@@ -231,7 +234,7 @@ class EnRuAudioWindow(ttk.Frame):
         self.parent.engine_speech.say_out(self.data[1])                                         # Метод из родителя
 
     def handler_say_context_partial(self) -> None:
-        """ Обработчик иконки ОЗВУЧИТЬ в контексте. Озвучивает примеры по одному за каждое нажатие"""
+        """ Обработчик иконки ОЗВУЧИТЬ в контексте. Озвучивает примеры по одному за каждое нажатие."""
 
         self.current_say, self.index_context = self.parent.engine_speech.say_out_partial(
             data_list=self.data, current_say=self.current_say, index_context=self.index_context)
@@ -241,7 +244,7 @@ class EnRuAudioWindow(ttk.Frame):
         self.parent.handler_write_statistic_button(self)                                        # Метод из родителя
 
     def get_data(self) -> None:
-        """ Формирование данных data для вывода. Запись в self.data """
+        """ Формирование данных data для вывода. Запись в self.data. """
         self.parent.get_word_data(self)                                                         # Метод из родителя
 
     def get_statistic_data_to_show(self) -> tuple[int, int, int]:

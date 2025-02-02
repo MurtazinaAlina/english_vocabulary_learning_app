@@ -1,3 +1,6 @@
+"""
+Общие обработчики команд для окон приложения.
+"""
 import datetime
 import tkinter as tk
 from tkinter import messagebox as mbox
@@ -8,14 +11,14 @@ from Utils.auxiliary_tools import replace_none_to_empty_str_in_list
 
 
 class CommonHandlersMixin:
-    """ Общие обработчики """
+    """ Общие обработчики. """
 
     def __init__(self):
         self.sorted = False
         self.sorting_choose = list(settings.SORTING_SHEETS.keys())          # Варианты сортировки
 
     def handler_excel_save_as(self) -> None:
-        """ Обработчик для меню СОХРАНИТЬ КАК книгу Excel """
+        """ Обработчик для меню СОХРАНИТЬ КАК книгу Excel. """
 
         filename = self.excel_save_file_as()
         if filename:

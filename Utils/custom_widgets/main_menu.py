@@ -1,3 +1,6 @@
+"""
+Главное меню в верхней части окна приложения.
+"""
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
@@ -50,7 +53,7 @@ class MainMenuBTN:
         menubtn.pack(anchor='nw', side='left')
 
         menu = tk.Menu(menubtn, tearoff=0, **menu_cascade_settings)     # Выпадающее меню с окнами приложения
-        menubtn.configure(menu=menu)                                    # Размещаме его в кнопке МЕНЮ
+        menubtn.configure(menu=menu)                                    # Размещаем его в кнопке МЕНЮ
         for k, v in settings.APP_WINDOWS.items():                       # МЕНЮ, автозаполнение
             menu.add_command(label=v['label'], command=lambda k=k: self.parent.choose_window(win_type=k))
 
@@ -117,8 +120,7 @@ class MainMenuBTN:
         say_menu = tk.Menu(menu_btn_say, tearoff=0, **menu_cascade_settings)
         menu_btn_say.configure(menu=say_menu)
 
-        icn = '⚙'
-        say_menu.add_command(label=f'{icn} Настройки речи',
+        say_menu.add_command(label='⚙ Настройки речи',
                              command=lambda: self.parent.popup.show_popup('settings_speech_popup'))
 
         # Кнопка ВИД

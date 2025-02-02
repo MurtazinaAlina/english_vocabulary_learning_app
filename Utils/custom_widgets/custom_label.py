@@ -1,3 +1,6 @@
+"""
+Кастомные виджеты Label.
+"""
 import tkinter as tk
 from tkinter import ttk
 

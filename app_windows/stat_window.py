@@ -1,3 +1,6 @@
+"""
+Окно приложения с отображением статистики отчётов пройденных тестирований.
+"""
 import datetime
 import tkinter as tk
 from tkinter import ttk, messagebox as mbox
@@ -22,6 +25,7 @@ class StatWindow(ttk.Frame):
 
     def put_widgets(self) -> None:
         """ Сборка основного окна страницы """
+
         header_label = ttk.Label(self, text=settings.APP_WINDOWS['stat']['label'], style='HeadLbl.TLabel')
         header_label.pack(anchor='center')
         self.grid_columnconfigure(0, weight=1)
@@ -247,7 +251,7 @@ class StatWindow(ttk.Frame):
                 date_before = datetime.datetime.strptime(date_before, '%Y-%m-%d').date()
                 filtered_stat = [i for i in filtered_stat if i[1] <= date_before]
 
-            self.parent.stat_data = list(filtered_stat)                      # Запись отфильтрованных данных в атрибут
+            self.parent.stat_data = list(filtered_stat)            # Запись отфильтрованных данных в атрибут
 
     def event_on_double_click(self, event=None) -> None:
         """ Обработчик двойного клика по строке отчёта статистики. Вызов детализации отчёта """
@@ -312,13 +316,14 @@ class StatWindow(ttk.Frame):
                     desc_order = False
                     self.parent.col_percent_reverse = True
 
-            elif col == 5:                                              # Тема
+            elif col == 5:                                              # Тема/Название листа
                 if self.parent.col_theme_reverse == False:
                     sort_by, desc_order = 'theme', False
                     self.parent.col_theme_reverse = True
                 elif self.parent.col_theme_reverse == True:
                     sort_by, desc_order = 'theme', True
                     self.parent.col_theme_reverse = False
+
             elif col == 7:                                              # Тип тестирования
                 if self.parent.col_test_type_reverse == False:
                     sort_by, desc_order = 'type', False

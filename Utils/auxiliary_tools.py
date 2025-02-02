@@ -124,9 +124,10 @@ def get_percent_style(percent, color_match_dict=settings.STAT_COLOR_MATCH) -> st
 
 
 def check_autoload_excel_mode(app) -> None:
-    """ Проверка режима отладки. При включенном автоматически проставляет тип базы 'Excel' и загружает
-    тестовую книгу Excel по заданному в settings пути. """
-
+    """
+    Проверка режима автозагрузки книги Excel. При включенном автоматически проставляет тип базы 'Excel' и загружает
+    тестовую книгу Excel по заданному в settings пути.
+    """
     if settings.AUTOLOAD_EXCEL:
         app.data_type = 'Excel'
         app.excel_path = settings.FILE_PATH_DEFAULT

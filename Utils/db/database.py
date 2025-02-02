@@ -1,3 +1,6 @@
+"""
+Действия с БД.
+"""
 import datetime
 import shutil
 from tkinter import filedialog, messagebox as mbox
@@ -19,6 +22,7 @@ class Database:
 
     def create_db(self) -> None:
         """ Создать и сохранить новую базу данных + подключиться к созданной базе """
+
         self.db_path = filedialog.asksaveasfilename(defaultextension=".db", filetypes=[("SQLite Database", "*.db")])
 
         if not self.db_path:
@@ -32,7 +36,7 @@ class Database:
         self.set_filler_data()
 
     def set_filler_data(self):
-        """ Заливка тестовых данных. Просто раскомментируйте необходимое / добавьте новое """
+        """ Заливка тестовых данных """
 
         self.refresh_db_after_new_tables()
 
@@ -49,7 +53,6 @@ class Database:
 
     def refresh_db_after_new_tables(self) -> None:
         """ Обновление таблиц в базе. Функция добавляет НОВЫЕ созданные таблицы, не затрагивая старые"""
-
         Base.metadata.create_all(bind=self.engine)
 
     def connect_db(self) -> None:

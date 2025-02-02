@@ -7,7 +7,8 @@
 
 # Режим автозагрузки тестового Excel файла
 AUTOLOAD_EXCEL: bool = False                                                            # Отладка, автозагрузка книги
-FILE_PATH_DEFAULT = 'C:\\Users\\Alynx\\Desktop\\Eng_vocab22.xlsx'                       # Файл автозагрузки
+# Путь к файлу автозагрузки - УКАЖИТЕ АКТУАЛЬНЫЙ
+FILE_PATH_DEFAULT = 'C:\\Users\\Username\\Desktop\\Eng_vocab_filename.xlsx'
 
 # Рабочие окна приложения.
 # При добавлении нового окна необходимо прописать в App метод соответствующий 'app_func' + инициализируемый в нем класс
@@ -47,7 +48,7 @@ TEST_TYPES = [
 # Настройки визуализации
 DEFAULT_COLOR_THEME = 'lav'                                     # Цветовая тема по умолчанию из styles.py
 DEFAULT_WINDOW_GEOMETRY = '1405x700+50+50'                      # Размер окна + положение по умолчанию
-DEFAULT_WINDOW_MINSIZE = (900, 450)
+DEFAULT_WINDOW_MINSIZE = (1405, 700)
 
 STAT_COLOR_MATCH = {                                # Настройка статистики: соответствие цветового выделения и порогов
             90: 'StatRed.TLabel',                   # от 0 до key
@@ -63,18 +64,18 @@ SORTING_SHEETS = {
 }
 
 # Настройки работы с Excel
-EXCEL_UTILS_SHEETS = ['Свод', 'Utils', 'Stat', 'Attempts']      # вспомогательные листы - не исп-ть для выбора слова
-EXCEL_STAT_LIST = 'Stat'                                        # лист со статистикой - для вывода в окне 'stat'
+EXCEL_UTILS_SHEETS = ['Свод', 'Utils', 'Stat', 'Attempts']      # Вспомогательные листы - не исп-ть для выбора слова
+EXCEL_STAT_LIST = 'Stat'                                        # Лист со статистикой - для вывода в окне 'stat'
 EXCEL_ATTEMPTS = 'Attempts'                                     # История попыток
 
 EXCEL_INDEX_FIRST_ROW_WITH_DATA = 6                             # Индекс 1й строки с данными (у меня 6)
 EXCEL_AUTOINDEX_LIMIT = 10000                                   # MAX значение автоматической индексации записей
 EXCEL_KEY_COLUMN = [2]                                          # ключевая колонка для подсчёта строк B
 EXCEL_DATA_COLUMNS = [1, 5]                                     # колонки с данными 1-5
-EXCEL_KEY_CELL= f'B{EXCEL_INDEX_FIRST_ROW_WITH_DATA}'        # Ключевая ячейка для определения наличия записей на листе
+EXCEL_KEY_CELL = f'B{EXCEL_INDEX_FIRST_ROW_WITH_DATA}'        # Ключевая ячейка для определения наличия записей на листе
 EXCEL_WORD_SHEET_FROZEN_RANGE = 'F6'                         # Закрепляем все ячейки до F6, т.е. A1:E5 будут закреплены
 
-EXCEL_SHEET_TAB_COLOR = 'addaff'                                # Цвет ярлычка листа
+EXCEL_SHEET_TAB_COLOR = 'addaff'                                # Цвет ярлычка листа по умолчанию
 EXCEL_TEXT_ADD_COLOR = '064681'                                 # Дополнительный цвет шрифта - примеры, заметки
 EXCEL_TEXT_TIPS_COLOR = 'dcc217'                                # Цвет подсказок самопроверки
 EXCEL_RANGE_BOTTOM_BORDER = 'A5:E5'                             # Диапазон для выделения нижней границей
@@ -131,10 +132,12 @@ COLUMN_WIDTH = {                                                # Фиксаци
                 'Instances': 450,
                 'Edit': 50
             }
-CNV_ROW_HEIGH = {                                               # строк - высота px для ТЕКУЩЕГО шрифта таблицы!
+CNV_ROW_HEIGH = {                                               # Строки - высота в px для ТЕКУЩЕГО шрифта таблицы!
     0: 40, 1: 40, 2: 55, 3: 70, 4: 85, 5: 100, 6: 120, 7: 135, 8: 145, 9: 160, 10: 185, 11: 200
 }
-CNV_COLUMN_SYMB_LIMIT = {4: 61, 3: 45, 1: 27, 2: 20}            # лимит для ТЕКУЩЕГО шрифта таблицы!
+CNV_COLUMN_SYMB_LIMIT = {                                       # Лимит символов в строке для ТЕКУЩЕГО шрифта таблицы!
+    4: 61, 3: 45, 1: 27, 2: 20                                  # key= индекс столбца, value= MAX символов
+}
 CNV_COLUMNS_MULTILINE_TEXT = [1, 2, 3, 4]         # Колонки для проверки на разбивку по строкам для опр-я высоты строки
 
 # Настройки для статистики

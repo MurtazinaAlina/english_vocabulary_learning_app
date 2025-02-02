@@ -20,12 +20,12 @@ EVENT_SELECTED_CURSOR_TABLE = '#addaff'                             # Выдел
 STYLE_COLORS = {
     'lav': {
         'title': 'Лавандовый',
-        'background': '#f9f9fe',        # f4f4fd
+        'background': '#f9f9fe',
         'foreground_main': '#064681',
         'cnvs_headers_bg': LIGHTGRAY_SYSTEM,
         'menu_btn_color_main': '#7875b9',
         'menu_btn_color_others': '#e6e6f5',
-        'menu_active_bg_color': '#b6b6da',   # d0d0d0
+        'menu_active_bg_color': '#b6b6da',
         'menu_active_fg_color': 'black',
         'pagi_on_hover_bg': '#b6b6da'
     },
@@ -87,13 +87,13 @@ FLAG_SET_MENU_ACTIVE_FG_COLOR = 'Flag'                              # Цвет �
 STYLES_INIT = {
 
     # Лейблы
-    'StatGreen.TLabel': {                                           # блок статистика - зелёный текст
+    'StatGreen.TLabel': {                                           # Блок статистика - зелёный текст
         'foreground': GREEN_RED_GREY_FORMAT_STYLE[0]
     },
     'StatRed.TLabel': {
-        'foreground': GREEN_RED_GREY_FORMAT_STYLE[1]                # блок статистика - красный текст
+        'foreground': GREEN_RED_GREY_FORMAT_STYLE[1]                # Блок статистика - красный текст
     },
-    'StatGrey.TLabel': {                                            # блок статистика - базовые лейблы
+    'StatGrey.TLabel': {                                            # Блок статистика - базовые лейблы
         'foreground': GREEN_RED_GREY_FORMAT_STYLE[2],
         'padding': (20, 20, 20, 20),
         'font': (FONT_MAIN_TEXT, 11)
@@ -130,7 +130,7 @@ STYLES_INIT = {
         'font': (FONT_MAIN_TEXT, 12, 'italic'),
         'foreground': FLAG_SET_FG_STYLE_COLOR_MAIN,
         'background': 'white',
-        'wraplength': 580  # wraplength - для автопереноса при превышении длины строки
+        'wraplength': 580
     },
     'Answers.TLabel': {                                             # Транскрипция и перевод
         'padding': (20, 20, 20, 20),
@@ -144,12 +144,10 @@ STYLES_INIT = {
         'font': (FONT_MAIN_TEXT, 11, 'bold'),
         'foreground': GREEN_RED_GREY_FORMAT_STYLE[2],
         'padding': (0, 5, 0, 5),
-        # 'borderwidth': 1,
-        # 'relief': 'solid'
     },
     'MsgLbl.TLabel': {                                              # Текст в системках
         'font': (FONT_SYSTEM_TEXT, 10),
-        'background': 'white'     # f7f7f7
+        'background': 'white'
     },
     'MsgLblChoose.TLabel': {                                        # Cистемка c 1 строкой и кнопкой рядом
         'font': (FONT_SYSTEM_TEXT, 10),
@@ -177,7 +175,7 @@ STYLES_INIT = {
         'font': (FONT_MAIN_TEXT, 11, 'bold')
     },
 
-    # Кнопки
+    # Чек-боксы, Радио
     'TCheckbutton': {                                               # Лейбл с текстом к чек-боксу, перегрузка
         'relief': 'flat',
     },
@@ -188,6 +186,8 @@ STYLES_INIT = {
     'TRadiobutton': {                                               # Лейбл с текстом к radio, перегрузка
         'relief': 'flat',
     },
+
+    # Кнопки
     'TButton': {                                                    # Перегрузка кнопки
         'relief': 'raised',
     },
@@ -212,7 +212,7 @@ STYLES_INIT = {
         'relief': 'raised',
         'foreground': '#580f0f',
         'padding': (5, 0, 5, 0),
-},
+    },
     'Popup.TButton': {                                              # Кнопки выбора в системках голубой кант
         'relief': 'raised',
         'foreground': 'black',
@@ -230,6 +230,8 @@ STYLES_INIT = {
         'relief': 'raised',
         'foreground': FLAG_SET_FG_STYLE_COLOR_MAIN
     },
+
+    # Кнопки Menubutton
     'MENU.TMenubutton': {                                           # Кнопка МЕНЮ
         'background': FLAG_SET_MENU_BTN_COLOR,
         'foreground': LIGHTGRAY_SYSTEM,
@@ -252,13 +254,12 @@ STYLES_INIT = {
 
     # Scale
     "Custom.Horizontal.TScale" : {                                  # Scale речевого синтеза
-        # 'background': self.bg,  # Цвет самого ползунка
         'sliderlength': 100  # Размер ползунка
     },
 }
 
 # Стили для меню
-MENU_CASCADE_VIEW = {                                               # Выпадающее меню
+MENU_CASCADE_VIEW = {                                               # Выпадающее меню в Menubutton
     'bg': LIGHTGRAY_SYSTEM,
     'activebackground': FLAG_SET_MENU_ACTIVE_BG_COLOR,
     'activeforeground': FLAG_SET_MENU_ACTIVE_FG_COLOR
@@ -280,8 +281,6 @@ CANVAS_TABLE_BORDER_DASH_GRAY = {                                   # Стиль
 TOP_LVL_MSG_STANDART_GEOMETRY = '220x122+300+300'                   # Геометрия окна стандартной системки
 TOP_LVL_MSG_STANDART_CONTAINER = {
     'width': 220,
-    # 'height': 140,
-    # 'background': STYLES_INIT['MsgLbl.TLabel']['background']
 }
 
 # Стили для DateEntry

@@ -1,3 +1,6 @@
+"""
+Общие виджеты и контейнеры с виджетами для окон приложения.
+"""
 import tkinter as tk
 from tkinter import ttk
 

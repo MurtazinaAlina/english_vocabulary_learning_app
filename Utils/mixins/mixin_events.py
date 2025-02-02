@@ -1,3 +1,8 @@
+"""
+Общие события для окон приложения.
+"""
+
+
 class CommonEvents:
 
     def __init__(self):
@@ -7,7 +12,8 @@ class CommonEvents:
         """ Фильтр списка в Combobox на основе пользовательского ввода """
 
         search_term = cmbbx_form.get().lower()              # Получаем текст, который введен в Combobox
-                                                            # Фильтруем список значений на основе введенного текста
+
+        # Фильтруем список значений на основе введенного текста
         filtered_data = [item for item in value_list if search_term in item.lower()]
         cmbbx_form['values'] = filtered_data                # Обновляем список значений в Combobox
         if not filtered_data:                               # Если нет совпадений, очищаем поле ввода
@@ -18,5 +24,5 @@ class CommonEvents:
 
         try:
             canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
-        except:
+        except (Exception, ):
             pass

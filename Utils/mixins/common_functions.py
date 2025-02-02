@@ -1,9 +1,12 @@
+"""
+Общие функции для окон приложения.
+"""
 import tkinter as tk
 from tkinter import messagebox as mbox
 
 
 class CommonFunctionsMixin:
-    """ Общие функции """
+    """ Общие функции. """
 
     def __init__(self):
         pass

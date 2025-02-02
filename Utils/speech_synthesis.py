@@ -1,3 +1,6 @@
+"""
+Управление синтезом речи для озвучки.
+"""
 import pyttsx3
 import threading
 import tkinter as tk
@@ -13,9 +16,10 @@ class SpeechSynthesis:
             'female': 1, 'male': 2
         }
 
-        self.speech_voice = 'male'            # Дефолтные настройки
-        self.speech_volume = 100
-        self.speech_rate = 120
+        # Дефолтные настройки
+        self.speech_voice = 'male'              # Голос
+        self.speech_volume = 100                # Громкость
+        self.speech_rate = 120                  # Скорость речи
 
         self.engine.setProperty('voice', self.engine.getProperty('voices')[self.voices_keys[self.speech_voice]].id)
         self.engine.setProperty('rate', self.speech_rate)

@@ -1,3 +1,6 @@
+"""
+Настройка всех всплывающих окон и их обработчиков.
+"""
 import tkinter as tk
 from tkinter import messagebox as mbox, ttk
 
@@ -10,10 +13,11 @@ from Utils.custom_widgets.hover_btn_text import HoverButton
 
 
 class Popup:
-    """ Класс для гибкой генерации всплывающих окон """
+    """ Класс для гибкой генерации всплывающих окон. """
 
     def __init__(self, master):
-        self.master = master  # Закрепляем в атрибут ссылку на родителя для обращения к его св-вам и методам
+
+        self.master = master                # Закрепляем в атрибут ссылку на родителя (класс основного окна приложения)
 
         self.flag_error_cmbbx = False       # Для изменения стилей при ошибках валидации
         self.flag_error_word = False
@@ -29,11 +33,15 @@ class Popup:
         getattr(self, popup_method)()
 
     def exit_confirmation(self):
+        """ Запрос подтверждения выхода из приложения. """
+
         answer = mbox.askquestion('Закрыть приложение', 'Вы уверены, что хотите выйти из приложения?')
         if answer == 'yes':
             self.master.destroy()
 
     def reset_confirmation(self):
+        """ Запрос подтверждения перезапуска приложения. """
+
         answer = mbox.askquestion('Перезапустить приложение', 'Вы уверены, что хотите перезапустить приложение?')
         if answer == 'yes':
             self.master.destroy()
@@ -41,11 +49,11 @@ class Popup:
             app.mainloop()
 
     def show_wb(self):
-        """ Посмотреть выбранную книгу Excel """
+        """ Посмотреть выбранную книгу Excel (путь). """
         mbox.showinfo('Выбранная книга Excel', self.master.excel_path)
 
     def loading_excel_data_to_db_popup(self) -> None:
-        """ Окно запуска импорта данных в БД из Excel книги"""
+        """ Окно запуска импорта данных в БД из Excel книги. """
 
         dialog = tk.Toplevel(self.master)                       # Настройки окна
         text = 'Загрузка данных из Excel'
@@ -162,7 +170,7 @@ class Popup:
         dialog.destroy()
 
     def add_new_sheet_popup(self):
-        """ Окно ввода данных для добавления нового листа Excel в выбранной книге """
+        """ Окно ввода данных для добавления нового листа Excel в выбранной книге/новой темы в БД. """
 
         dialog = tk.Toplevel(self.master)
         text = 'Создание новой темы в БД' if self.master.db.engine else 'Создание нового листа в книге Excel'
@@ -178,12 +186,19 @@ class Popup:
         container = tk.Frame(dialog, background=bg, width=350)
         container.grid_columnconfigure(0, weight=1)
         container.grid(row=0, column=0, sticky='nswe')
+
+        # Лейбл
         text = 'Укажите название новой темы' if self.master.db.engine else 'Укажите название нового листа Excel'
         header = ttk.Label(container, text=text, style='AddRowLbl.TLabel', padding=(10, 20, 20, 10))
         header.grid(row=0, column=0, sticky='ws')
+
+        # Форма ввода
         self.form_enter_sheet_name = ttk.Entry(container, width=50)
         self.form_enter_sheet_name.grid(row=1, column=0, sticky='we', padx=10)
-        btn_submit = ttk.Button(container, text='Создать', command=lambda: self.on_click_ADDSHEET(dialog), style='AddRow.TButton')
+
+        # Кнопка подтверждения
+        btn_submit = ttk.Button(container, text='Создать', command=lambda: self.on_click_ADDSHEET(dialog),
+                                style='AddRow.TButton')
         btn_submit.grid(row=2, column=0, sticky='en', padx=10, pady=10)
 
         dialog.wait_window()

@@ -1,3 +1,6 @@
+' Скрипт для запуска приложения через run_script.bat БЕЗ окна cmd-терминала
+
+
 Set objShell = CreateObject("WScript.Shell")
 
 ' Получаем путь к текущей папке скрипта

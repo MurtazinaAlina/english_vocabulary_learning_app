@@ -1,3 +1,6 @@
+"""
+Окно приложения с тестированием перевода с английского языка на русский по написанию слова.
+"""
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
@@ -9,9 +12,10 @@ from Utils.custom_widgets.tooltips import TooltipCursorOnHover
 
 
 class EnRuWindow(ttk.Frame):
-    """ Окно для вывода en -> ru: word данных """
+    """ Окно для отображения тестирования en -> ru: word """
 
     def __init__(self, parent):
+
         super().__init__(parent)
         self.parent = parent
         self.bg = styles.STYLE_COLORS[self.parent.current_color_style]['background']
@@ -121,7 +125,7 @@ class EnRuWindow(ttk.Frame):
         cont_canvas.grid(row=3, column=0, columnspan=4, rowspan=4, sticky='nsew')
 
     def put_container_statistic(self, wrapper_word_stat) -> None:
-        """ Сборка контейнера со статистикой """
+        """ Сборка контейнера со статистикой ответов на тестирование"""
 
         # Собираем контейнер из родительского метода
         self.inner_frame_right = self.parent.put_container_with_stat(self, wrapper_word_stat)
@@ -136,7 +140,7 @@ class EnRuWindow(ttk.Frame):
         answer_frame.grid(row=7, column=0, sticky='wsne', pady=0)
 
     def put_container_show_answer(self) -> None:
-        """ Сборка контейнера с транскрипцией и переводом """
+        """ Сборка контейнера с ответом: транскрипцией и переводом """
 
         if self.parent.show_answer:                                     # Отображение только при включенном чек-боксе
             # Внутренний контейнер с ответами - внизу
