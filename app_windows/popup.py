@@ -204,17 +204,21 @@ class Popup:
         dialog.wait_window()
 
     def on_click_ADDSHEET(self, dialog):
-        """ Добавление нового листа в книгу Excel """
+        """ Добавление нового листа в книгу Excel/темы в БД. """
+
+        # Забираем название из формы ввода и форматируем
         self.new_sheet_name = self.form_enter_sheet_name.get()
         self.new_sheet_name = self.new_sheet_name[0].upper() + self.new_sheet_name[1:]
 
-        if not self.validate_sheet_name():                              # Валидация названия
+        # Валидация названия
+        if not self.validate_sheet_name():
             return
 
         # Создание и сохранение листа
         if self.master.data_type == 'Excel':
             wb_name = self.master.excel_create_sheet(self.new_sheet_name, self.master.excel_path)
             mbox.showinfo('', f'Вы создали новый лист "{self.new_sheet_name}" в файле {wb_name}')
+
         elif self.master.data_type == 'База':
             new_theme = self.master.db.create_new_subject(self.new_sheet_name)
             if new_theme:
@@ -224,7 +228,8 @@ class Popup:
         self.master.refresh()
 
     def edit_sheet_popup(self):
-        """ Диалоговое окно с формами для редактирования листа Excel """
+        """ Диалоговое окно с формами для редактирования названия листа Excel/темы. """
+
         dialog = tk.Toplevel(self.master)
         text = 'Редактирование темы' if self.master.db.engine else 'Редактирование листа'
         dialog.title(text)
@@ -239,25 +244,31 @@ class Popup:
         container = tk.Frame(dialog, background=bg, width=350)
         container.grid_columnconfigure(0, weight=1)
         container.grid(row=0, column=0, sticky='nswe')
+
+        # Лейбл
         text = 'темы' if self.master.db.engine else 'листа Excel'
         header = ttk.Label(container, text=f'Укажите новое название {text}', style='AddRowLbl.TLabel',
                            padding=(10, 20, 20, 10))
         header.grid(row=0, column=0, sticky='ws')
+
+        # Форма ввода нового названия
         self.form_enter_sheet_name = ttk.Entry(container, width=50)
         current_name = self.master.choosen_db_theme if self.master.choosen_db_theme else self.master.choosen_excel_list
         self.form_enter_sheet_name.insert(0, current_name)
         self.form_enter_sheet_name.grid(row=1, column=0, sticky='we', padx=10)
 
-
+        # Контейнер с кнопками
         btn_container = tk.Frame(container, bg=bg)
         btn_container.grid(row=2, column=0, sticky='en', padx=10, pady=10)
 
+        # Чек-бокс удаления
         self.var_delete_sheet = tk.BooleanVar()
         text = 'тему' if self.master.db.engine else 'лист Excel'
         self.chkbx_delete_sheet = ttk.Checkbutton(btn_container, text=f'Удалить {text}',
                                                   variable=self.var_delete_sheet, style='Red.TCheckbutton')
         self.chkbx_delete_sheet.grid(row=0, column=0, sticky='s', padx=50)
 
+        # Кнопка ПОДТВЕРДИТЬ
         btn_submit = ttk.Button(btn_container, text='Подтвердить', command=lambda: self.on_click_EDITSHEET(dialog),
                                 style='AddRow.TButton')
         btn_submit.grid(row=0, column=1, sticky='en')
@@ -288,27 +299,33 @@ class Popup:
         self.master.refresh()
 
     def on_click_EDITSHEET(self, dialog):
-        """ Обработчик редактирования листа Excel """
+        """ Обработчик редактирования названия листа Excel/темы в БД. """
+
+        # Проверка на запрос удаления
         to_delete = self.var_delete_sheet.get()
         if to_delete:
-            self.on_click_DELETESHEET()                             # Удаление листа
+            self.on_click_DELETESHEET()                             # Удаление
             dialog.destroy()
             return
-        # Редактирование названия листа
+
+        # Валидация названия
         self.new_sheet_name = self.form_enter_sheet_name.get()
-        if not self.validate_sheet_name():                          # Валидация названия листа
+        if not self.validate_sheet_name():
             return
-                                                                    # Редактирование и сохранение
+
+        # Редактирование названия листа/темы и сохранение
         self.master.excel_edit_sheet_name(old_sheet_name=self.master.choosen_excel_list,
-                                          new_sheet_name=self.new_sheet_name, excel_path=self.master.excel_path)
+                                          new_sheet_name=self.new_sheet_name,
+                                          excel_path=self.master.excel_path)
         mbox.showinfo('Сообщение', 'Изменения сохранены')
+
         self.master.choosen_excel_list = self.new_sheet_name        # Обновление переменной
         dialog.destroy()
         self.master.refresh()
 
     def edit_row_popup(self, row: list) -> None:
         """
-        Окно с формами ввода для редактирования записей в базе
+        Окно с формами ввода для редактирования записей слова/фразы в базе.
 
         :param row: список с данными для отображения:
                     [3, 'word', 'transcript', 'translate', 'Here is context', 'sheet name']
@@ -326,7 +343,7 @@ class Popup:
         # Записываем данные ДО изменений
         self.given_choosen_sheet_cmbbx = self.master.choosen_excel_list if self.master.choosen_excel_list else \
             self.master.choosen_db_theme
-        if len(row) == 6:                                                 # Если вызов из en-ru, имя листа в row[5]
+        if len(row) == 6:                                                 # Если имя листа в row[5]
             self.given_choosen_sheet_cmbbx = row[5]
 
         self.given_row_id = row[0]
@@ -340,14 +357,14 @@ class Popup:
         self.forms_container = tk.Frame(container, bg=bg)
         self.forms_container.grid(row=0, column=0, sticky='nswe', pady=20)
 
-        # Выбор листа
+        # Выбор листа/темы
         text = 'Выбранная тема:' if self.master.db.engine else 'Выбранный лист:'
         label_choose_sheet = ttk.Label(self.forms_container, text=text, style='AddRowLbl.TLabel', padding=(10, 8))
         label_choose_sheet.grid(row=1, column=0, sticky='en')                   # Лейбл
 
-        self._put_container_choose_sheet()    # Сборка контейнера с Combobox выбора листа, фильтрацией и иконкой поиска
+        self._put_container_choose_sheet()          # Сборка контейнера с Combobox выбора, фильтрацией и иконкой поиска
 
-        # Слово - редактирование
+        # Слово/Фраза - редактирование
         fg_validation_error = {}                                                # Настройка стилей после валидации
         if self.flag_error_word:
             fg_validation_error = {'foreground': styles.GREEN_RED_GREY_FORMAT_STYLE[1]}
@@ -370,16 +387,16 @@ class Popup:
         self.form_enter_transcript.grid(row=3, column=1, sticky='w')            # Форма ввода
 
         # Перевод - редактирование
-        label_enter_translate = ttk.Label(self.forms_container, text='Перевод:', style='AddRowLbl.TLabel', padding=(10, 8))
-        label_enter_translate.grid(row=4, column=0, sticky='en')                # Лейбл
+        lbl_enter_transl = ttk.Label(self.forms_container, text='Перевод:', style='AddRowLbl.TLabel', padding=(10, 8))
+        lbl_enter_transl.grid(row=4, column=0, sticky='en')                     # Лейбл
 
         self.form_enter_translate = tk.Text(self.forms_container, width=68, height=5)
         self.form_enter_translate.insert(1.0, self.given_translate)
         self.form_enter_translate.grid(row=4, column=1, sticky='w', pady=10)    # Форма ввода
 
         # Контекст - редактирование
-        label_enter_context = ttk.Label(self.forms_container, text='Примеры:', style='AddRowLbl.TLabel', padding=(10, 8))
-        label_enter_context.grid(row=5, column=0, sticky='en')                  # Лейбл
+        lbl_enter_context = ttk.Label(self.forms_container, text='Примеры:', style='AddRowLbl.TLabel', padding=(10, 8))
+        lbl_enter_context.grid(row=5, column=0, sticky='en')                    # Лейбл
 
         self.form_enter_context = tk.Text(self.forms_container, width=68, height=5)
         self.form_enter_context.insert(1.0, self.given_context)
@@ -388,8 +405,8 @@ class Popup:
         # Кнопки
         btn_container = tk.Frame(self.forms_container, bg=bg)
         btn_container.grid(row=6, column=1, sticky='nse')
-        btn_submit = ttk.Button(btn_container, text='Сохранить изменения', command=lambda: self.on_click_EDITROW(dialog),
-                                style='AddRow.TButton')
+        btn_submit = ttk.Button(btn_container, text='Сохранить изменения',
+                                command=lambda: self.on_click_EDITROW(dialog), style='AddRow.TButton')
         btn_submit.grid(row=0, column=1, sticky='en')                           # СОХРАНИТЬ
 
         self.delete_var = tk.BooleanVar()
@@ -400,8 +417,10 @@ class Popup:
         dialog.wait_window()
 
     def on_click_EDITROW(self, dialog: tk.Toplevel) -> None:
-        """ Обработчик кнопки редактирования записи с данными """
-        self.choosen_sheet_cmbbx = self.form_choose_sheet.get()  # Забираем все переменные из форм
+        """ Обработчик кнопки редактирования записи с данными слова/фразы. """
+
+        # Забираем все переменные из форм
+        self.choosen_sheet_cmbbx = self.form_choose_sheet.get()
         self.word = self.form_enter_word.get()
         self.transcript = self.form_enter_transcript.get()
         self.translate = self.form_enter_translate.get(1.0, tk.END)
@@ -411,7 +430,7 @@ class Popup:
         # Подтверждение удаления
         if to_delete:
             answer = mbox.askyesno('Подтвердите удаление',
-                                   'Вы действительно хотите удалить запись?\nОтменить действие бедет невозможно')
+                                   'Вы действительно хотите удалить запись?\nОтменить действие будет невозможно')
             if answer == 'Нет' or answer == False:
                 return
 
@@ -430,16 +449,19 @@ class Popup:
             self.master.refresh()                               # Обновление данных в окне
             return
 
-        # Если непосредственно изменение данных
-        if not self.validate_self_word():                       # Валидация слова/фразы
+        # Если непосредственно изменение данных:
+
+        # Валидация слова/фразы
+        if not self.validate_self_word():
             dialog.destroy()
             self.edit_row_popup(self.data)
             return
         self.flag_error_word = False
 
-        # Редактирование данных без изменения листа
+        # Редактирование данных в Excel
         if self.master.data_type == 'Excel':
 
+            # Редактирование данных без изменения листа
             if self.given_choosen_sheet_cmbbx == self.choosen_sheet_cmbbx:
                 if self.master.excel_edit_row_data(self):                           # Редактирование в Excel
                     mbox.showinfo('Сообщение', 'Запись успешно обновлена!')
@@ -447,13 +469,14 @@ class Popup:
                     mbox.showerror('Ошибка', 'Ошибка индексации!\nID строки не соответствует значению.\nПроверьте файл')
             # Если при редактировании меняется лист
             else:
-                if self.master.excel_delete_row(self):  # Удаление строки из старой страницы Excel
-                    self.master.excel_create_row(self)  # Создание записи на новом листе книги Excel
+                if self.master.excel_delete_row(self):              # Удаление строки из старой страницы Excel
+                    self.master.excel_create_row(self)              # Создание записи на новом листе книги Excel
                     mbox.showinfo('', 'Запись изменена!')
                     self.master.choosen_excel_list = self.choosen_sheet_cmbbx
                 else:
                     mbox.showerror('Ошибка', 'Ошибка индексации!\nДействие не выполнено, проверьте файл')
 
+        # Редактирование данных для БД
         elif self.master.data_type == 'База':
             if self.master.db.update_word(self.given_row_id, self.word, self.transcript, self.translate, self.context,
                                           self.choosen_sheet_cmbbx):
@@ -465,7 +488,9 @@ class Popup:
         self.master.refresh()                       # Обновление данных в окне
 
     def _put_container_choose_sheet(self) -> None:
-        """ Сборка контейнера с выбором листа, фильтром, иконкой поиска + настроенными событиями поиска и фильтрации """
+        """
+        Сборка контейнера с выбором листа/темы, фильтром, иконкой поиска + настроенными событиями поиска и фильтрации.
+        """
 
         bg = styles.STYLE_COLORS[self.master.current_color_style]['background']
         container_choose_sheet = tk.Frame(self.forms_container, bg=bg)
@@ -514,8 +539,10 @@ class Popup:
         self.form_choose_sheet.grid(row=0, column=1, sticky='w')
 
     def add_row(self) -> None:
-        """ Окно ввода данных для добавления новой записи в базу """
-        dialog = tk.Toplevel(self.master)                           # Параметры окна
+        """ Окно ввода данных для добавления новой записи слова/фразы в базу. """
+
+        # Параметры окна
+        dialog = tk.Toplevel(self.master)
         text = f'БД {self.master.db.db_path}' if self.master.db.engine else f'книгу {self.master.excel_path}'
         dialog.title(f'Добавление новой записи в {text}')
         dialog.geometry('760x415+100+100')
@@ -530,8 +557,8 @@ class Popup:
         self.forms_container = tk.Frame(container, bg=bg)
         self.forms_container.grid(row=0, column=0, sticky='nswe', pady=20)
 
-        # Выбор листа
-        fg_validation_error = {}                                    # Cловарь для настройки стиля при ошибках валидации
+        # Выбор листа/темы
+        fg_validation_error = {}                                    # Словарь для настройки стиля при ошибках валидации
         if self.flag_error_cmbbx:
             fg_validation_error = {'foreground': styles.GREEN_RED_GREY_FORMAT_STYLE[1]}
 
@@ -541,7 +568,7 @@ class Popup:
                                        **fg_validation_error)
         label_choose_sheet.grid(row=1, column=0, sticky='en')        # Лейбл
 
-        # Сборка контейнера с выбором листа, фильтрацией и иконкой поиска
+        # Сборка контейнера с выбором листа/темы, фильтрацией и иконкой поиска
         self._put_container_choose_sheet()
 
         # Ввод слова/фразы
@@ -584,22 +611,26 @@ class Popup:
         label_enter_context.grid(row=5, column=0, sticky='en')                          # Лейбл
 
         self.form_enter_context = tk.Text(self.forms_container, width=68, height=5)     # Форма ввода
-        if self.context:                                                            # Автозаполнение после валидации
+        if self.context:                                                                # Автозаполнение после валидации
             self.form_enter_context.insert(1.0, self.context)
         self.form_enter_context.grid(row=5, column=1, sticky='w', pady=5)
 
-        # Кнопки
+        # Кнопки:
         btn_container = tk.Frame(self.forms_container, bg=bg)
         btn_container.grid(row=6, column=1, sticky='nswe', padx=393)
-        btn_clear = ttk.Button(btn_container, text='Очистить', command=self.on_click_CLEAR)
-        btn_clear.grid(row=0, column=0, sticky='wn', padx=0)                        # ОЧИСТИТЬ
 
+        # ОЧИСТИТЬ
+        btn_clear = ttk.Button(btn_container, text='Очистить', command=self.on_click_CLEAR)
+        btn_clear.grid(row=0, column=0, sticky='wn', padx=0)
+
+        # ЗАПИСАТЬ
         btn_submit = ttk.Button(btn_container, text='Записать', command=lambda: self.on_click_ADDROW(dialog),
-                                style='AddRow.TButton')                             # ЗАПИСАТЬ
+                                style='AddRow.TButton')
         btn_submit.grid(row=0, column=1, sticky='wn', padx=5)
 
+        # ВЫБРАТЬ ДРУГОЙ ФАЙЛ
         foot_container = tk.Frame(container, bg=bg)
-        foot_container.grid(row=1, column=0, sticky='snwe', padx=280)               # ВЫБРАТЬ ДРУГОЙ ФАЙЛ
+        foot_container.grid(row=1, column=0, sticky='snwe', padx=280)
         label_change_file = ttk.Label(foot_container, text='Выбрать другой файл .xls', style='ChooseFile.TLabel')
         label_change_file.grid(row=0, column=0)
         btn_change_file = ttk.Button(foot_container, text='Изменить', style='ChngFile.TButton',
@@ -609,8 +640,10 @@ class Popup:
         dialog.wait_window()
 
     def on_click_ADDROW(self, dialog: tk.Toplevel) -> None:
-        """ Обработчик добавления новой записи в Excel """
-        self.choosen_sheet_cmbbx = self.form_choose_sheet.get()            # Забираем все переменные из форм
+        """ Обработчик добавления новой записи слова/фразы в Excel/БД. """
+
+        # Забираем все переменные из форм ввода
+        self.choosen_sheet_cmbbx = self.form_choose_sheet.get()
         self.word = self.form_enter_word.get()
         self.transcript = self.form_enter_transcript.get()
         self.translate = self.form_enter_translate.get(1.0, tk.END)
@@ -624,22 +657,27 @@ class Popup:
             dialog.destroy()                                                # Для обновления стилей валидации
             self.add_row()
             return
+
         if not self.validate_self_word():
             dialog.destroy()                                                # Для обновления стилей валидации
             self.add_row()
             return
 
-        self.flag_error_word = False                 # Если валидация прошла отменяем флаги и форматируем под эксель
+        # Если валидация прошла отменяем флаги
+        self.flag_error_word = False
         self.flag_error_cmbbx = False
 
-
+        # Запись в Excel
         if self.master.data_type == 'Excel':
-            self.context = self.context.replace('\n', '     ')  # Мне просто так удобнее в Excel файле
+            self.context = self.context.replace('\n', '     ')                  # Мне просто так удобнее в Excel файле
             self.master.excel_create_row(self)                                  # Создаём и сохраняем новую запись
             mbox.showinfo('', 'Запись успешно создана!')
             self.master.choosen_excel_list = self.choosen_sheet_cmbbx  # Если был выбор другого листа, устанавливаем его
+
+        # Запись в БД
         elif self.master.data_type == 'База':
-            new_word = self.master.db.create_new_word(self.choosen_sheet_cmbbx, self.word, self.transcript, self.translate, self.context)
+            new_word = self.master.db.create_new_word(
+                self.choosen_sheet_cmbbx, self.word, self.transcript, self.translate, self.context)
             if new_word:
                 mbox.showinfo('', 'Запись успешно создана!')
 
@@ -648,7 +686,8 @@ class Popup:
         self.master.refresh()                                               # Обновление данных в окне
 
     def on_click_CLEAR(self) -> None:
-        """ Очистка данных в формах """
+        """ Очистка данных в формах ввода окна. """
+
         self.form_choose_sheet.delete(0, tk.END)
         self.form_enter_word.delete(0, tk.END)
         self.form_enter_transcript.delete(0, tk.END)
@@ -656,8 +695,10 @@ class Popup:
         self.form_enter_context.delete(1.0, tk.END)
 
     def settings_speech_popup(self) -> None:
-        """ Окно настроек синтеза речи """
-        dialog = tk.Toplevel(self.master)                           # Параметры окна
+        """ Окно настроек синтеза речи. """
+
+        # Параметры окна
+        dialog = tk.Toplevel(self.master)
         dialog.title(f'Настройки речи')
         dialog.geometry('710x275+100+100')
         dialog.transient(self.master)
@@ -672,49 +713,53 @@ class Popup:
         container_with_volume.pack(anchor='sw', pady=(40, 10))
 
         lbl = ttk.Label(container_with_volume, text='Громкость', style='AddRowLbl.TLabel')
-        lbl.pack(anchor='w', side='left', padx=(70, 20))        # Лейбл
+        lbl.pack(anchor='w', side='left', padx=(70, 20))                # Лейбл
 
         lbl = tk.Label(container_with_volume, text='0', font=("Arial", 12), background=self.bg)
-        lbl.pack(side='left', padx=3)                           # Лейбл MIN
+        lbl.pack(side='left', padx=3)                                   # Лейбл MIN
 
-        value_label = tk.Label(container_with_volume, text=str(int(self.master.engine_speech.speech_volume)), font=("Arial", 12), background=self.bg)
+        value_label = tk.Label(container_with_volume, text=str(int(self.master.engine_speech.speech_volume)),
+                               font=("Arial", 12), background=self.bg)
 
-        volume_scale = ttk.Scale(container_with_volume, from_=0, to=100, orient=tk.HORIZONTAL,
-                                 command= lambda val, value_label=value_label:self.master.engine_speech.set_volume(val, value_label),
-                                 style="Custom.Horizontal.TScale", length=380)
+        volume_scale = ttk.Scale(
+            container_with_volume, from_=0, to=100, orient=tk.HORIZONTAL,
+            command=lambda val, value_label=value_label: self.master.engine_speech.set_volume(val, value_label),
+            style="Custom.Horizontal.TScale", length=380)
         volume_scale.set(self.master.engine_speech.speech_volume)
-        volume_scale.pack(side='left', pady=(0, 0))             # Бегунок для громкости от 0 до 100
+        volume_scale.pack(side='left', pady=(0, 0))                     # Бегунок для громкости от 0 до 100
 
-        value_label.pack(side='left', padx=3)                   # Лейбл VALUE
+        value_label.pack(side='left', padx=3)                           # Лейбл VALUE
 
         # Контейнер со скоростью речи
         container_with_speed = tk.Frame(container, background=self.bg)
         container_with_speed.pack(anchor='sw', pady=(10, 10))
 
         lbl = ttk.Label(container_with_speed, text='Скорость речи', style='AddRowLbl.TLabel')
-        lbl.pack(anchor='w', side='left', padx=(45, 20))        # Лейбл
+        lbl.pack(anchor='w', side='left', padx=(45, 20))                # Лейбл
 
         lbl = tk.Label(container_with_speed, text='0', font=("Arial", 12), background=self.bg)
-        lbl.pack(side='left', padx=3)                           # Лейбл MIN
+        lbl.pack(side='left', padx=3)                                   # Лейбл MIN
 
-        speed_label = tk.Label(container_with_speed, text=f"{self.master.engine_speech.speech_rate}", font=("Arial", 12), background=self.bg)
+        speed_label = tk.Label(container_with_speed, text=f"{self.master.engine_speech.speech_rate}",
+                               font=("Arial", 12), background=self.bg)
 
         volume_scale = ttk.Scale(container_with_speed, from_=0, to=200, orient=tk.HORIZONTAL,
-                                 command=lambda val, value_label=speed_label: self.master.engine_speech.set_speed(val, speed_label),
+                                 command=lambda val, value_label=speed_label: self.master.engine_speech.set_speed(
+                                     val, speed_label),
                                  style="Custom.Horizontal.TScale", length=380)
         volume_scale.set(self.master.engine_speech.speech_rate)
-        volume_scale.pack(side='left', pady=(0, 0))             # Бегунок для скорости от 0 до 200
+        volume_scale.pack(side='left', pady=(0, 0))                     # Бегунок для скорости от 0 до 200
 
-        speed_label.pack(side='left', padx=3)                   # Лейбл VALUE
+        speed_label.pack(side='left', padx=3)                           # Лейбл VALUE
 
         # Контейнер с голосом
         container_with_voice = tk.Frame(container, background=self.bg)
         container_with_voice.pack(anchor='sw', pady=(10, 0))
 
         lbl = ttk.Label(container_with_voice, text='Выберите голос', style='AddRowLbl.TLabel')
-        lbl.pack(anchor='w', side='left', padx=(34, 66))        # Лейбл
+        lbl.pack(anchor='w', side='left', padx=(34, 66))                # Лейбл
 
-        self.rbtn_var = tk.StringVar()                                # Радио кнопки
+        self.rbtn_var = tk.StringVar()                                  # Радио кнопки
         self.rbtn_var.set(self.master.engine_speech.speech_voice)
         rbtn_1 = ttk.Radiobutton(container_with_voice, text='Женский', variable=self.rbtn_var, value='female',
                                  command=lambda: self.master.engine_speech.set_voice(self.rbtn_var.get()))
@@ -732,7 +777,7 @@ class Popup:
 
     def on_click_OK_settings_speech(self, dialog: tk.Toplevel) -> None:
         """
-        Обработчик кнопки выхода из настроек речи. Подтверждение данных для записи в настройки БД
+        Обработчик кнопки выхода из настроек речи. Подтверждение данных для записи в настройки БД.
 
         :param dialog: объект диалогового окна
         """
@@ -741,48 +786,17 @@ class Popup:
                 self.master.engine_speech.speech_volume, self.master.engine_speech.speech_rate, self.rbtn_var.get())
         dialog.destroy()
 
-    def handler_choose_db(self):                                    # TODO: ! НЕАКТУАЛ КРОМЕ ТЕСТ
-        self.popup_ask_db_type()
-        self.master.parent.data_type = self.result
-        if self.result == 'Excel':
-            self.master.parent.handler_select_file_wb()
-        if self.result == 'База':
-            self.master.parent.excel_path = None
-            self.master.parent.wb = None
-            self.master.parent.refresh()
-
-    def popup_ask_db_type(self):                                    # TODO: ! НЕАКТУАЛ КРОМЕ ТЕСТ
-        """ Вывод окна с выбором типа базы """
-        dialog = tk.Toplevel(self.master)
-        self.master.parent.bell()
-        tls.toplvl_msg_set_standart_params(dialog, '')
-
-        main_container = tk.Frame(dialog, **styles.TOP_LVL_MSG_STANDART_CONTAINER)
-        main_container.grid(row=0, column=0, sticky='nswe')
-        main_container.grid_columnconfigure(0, weight=1)
-        cont_msg = tk.Frame(main_container, background='white')
-        cont_msg.grid(row=0, column=0, sticky='nswe')
-        message_label = ttk.Label(cont_msg, text="Выберите тип данных", style='MsgLbl.TLabel')
-        message_label.grid(row=0, column=0, sticky='snwe', pady=8, padx=20)
-
-        cont_btns = tk.Frame(main_container, background=styles.LIGHTGRAY_SYSTEM)
-        cont_btns.grid(row=1, column=0, sticky='snwe', padx=5)
-        button_1 = ttk.Button(cont_btns, text="Excel", command=lambda: self.on_click_Excel(dialog), style='Popup.TButton')
-        button_1.grid(row=0, column=0, sticky='sne', pady=12, padx=10)
-        button_2 = ttk.Button(cont_btns, text="База", command=lambda: self.on_click_DB(dialog), style='Popup.TButton')
-        button_2.grid(row=0, column=1, sticky='snw', pady=12,padx=10)
-
-        dialog.wait_window(dialog)   # Ожидаем завершения диалога иначе код пойдет дальше не дождавшись выбора значения
-
     def view_stat_row_popup(self, values: tuple) -> None:
         """
-        Окно просмотра отчёта статистики с детализацией
+        Окно просмотра отчёта статистики с детализацией попыток.
 
         :param values: кортеж данных из выделенной строки таблицы формата:
                         ('1', '2025-01-21 22:43:09', '4', '4', '100.0 %', 'Attack on Titans', '2', 'en -> ru: word')
         :return: None
         """
-        dialog = tk.Toplevel(self.master)                                           # Общие параметры окна
+
+        # Общие параметры окна
+        dialog = tk.Toplevel(self.master)
         dialog.title(f'Просмотр записи статистики')
         dialog.geometry('760x415+100+100')
         dialog.transient(self.master)
@@ -870,57 +884,69 @@ class Popup:
         for row in data:
             tree.insert('', tk.END, values=row)                                     # Заполнение таблицы
 
-        # Кнопки
-        btn_container = tk.Frame(container, bg=bg)                                  # Кнопка выхода
+        # Кнопка выхода
+        btn_container = tk.Frame(container, bg=bg)
         btn_container.grid(row=2, column=0, sticky='e', pady=(5, 0), padx=5)
         btn_submit = ttk.Button(btn_container, text='Закрыть', command=dialog.destroy, style='AddRow.TButton')
         btn_submit.grid(row=0, column=0, sticky='se', padx=201)
 
         dialog.wait_window()
 
-    def on_click_Excel(self, dialog: tk.Toplevel) -> None:
-        """ Обработчик кнопки выбора Excel"""
-        self.result = 'Excel'
-        dialog.destroy()
-
-    def on_click_DB(self, dialog: tk.Toplevel) -> None:
-        """ Обработчик кнопки выбора БД"""
-        self.result = 'База'
-        dialog.destroy()
-
     def validate_self_word(self) -> bool:
-        """ Валидация введённого слова/фразы """
+        """
+        Валидация введённого слова/фразы.
+
+        :return: True при успехе прохождения валидации, False при наличии ошибок.
+        """
+
+        # Проверка, что в форме ввода есть символы
         if not self.word:
             mbox.showerror('', 'Необходимо указать Слово/Фразу')
             self.flag_error_word = True
             return False
+
+        # Проверка, что в форме ввода не менее 2-х символов
         if len(self.word) < 2:
             mbox.showerror('', 'Слово/Фраза должны содержать не менее 2х символов')
             self.flag_error_word = True
             return False
+
         return True
 
     def validate_sheet_name(self) -> bool:
-        """ Валидация названия листа Excel """
+        """
+        Валидация названия листа Excel/темы.
 
+        :return: True при успехе прохождения валидации, False при наличии ошибок.
+        """
+
+        # Текущий список листов/тем
         if self.master.data_type == 'Excel':
             self.actual_sheets_or_themes = self.master.excel_get_list_all_sheets()
         elif self.master.data_type == 'База':
             self.actual_sheets_or_themes = self.master.db.get_list_all_themes()
 
+        # Проверка уникальности названия
         if self.new_sheet_name in self.actual_sheets_or_themes:
-            mbox.showerror('Ошибка', 'Лист с таким названием уже существует.\nУкажите другое название листа.')
+            text = 'Лист' if self.master.data_type == 'Excel' else 'Тема'
+            mbox.showerror('Ошибка', f'{text} с таким названием уже существует.\nУкажите другое название.')
             return False
+
+        # Проверка, что в форме ввода есть символы
         if not self.new_sheet_name:
-            mbox.showerror('Ошибка', 'Необходимо указать название листа')
+            text = 'листа' if self.master.data_type == 'Excel' else 'темы'
+            mbox.showerror('Ошибка', f'Необходимо указать название {text}')
             return False
+
+        # Проверка, что в форме ввода более 2-х символов
         elif len(self.new_sheet_name) < 3:
-            mbox.showerror('Ошибка', 'Название листа должно содержать не менее 3х символов')
+            mbox.showerror('Ошибка', 'Название должно содержать не менее 3х символов')
             return False
+
         return True
 
     def clear_self_atributes(self) -> None:
-        """ Сброс данных формы ввода, записанных в self """
+        """ Сброс данных формы ввода, записанных в self. """
 
         self.choosen_sheet_cmbbx = None
         self.word = None
